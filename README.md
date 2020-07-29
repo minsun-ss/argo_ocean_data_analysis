@@ -4,6 +4,7 @@ For use in the SIADS591 Milestone Project
 Data sets/links:
 * Argo User Manual: https://archimer.ifremer.fr/doc/00187/29825/
 * FTP we could pull from: ftp://usgodae.org/pub/outgoing/argo
+* NOAA Weather data services: https://www.ncei.noaa.gov/access, including Storm Event DB (https://www.ncdc.noaa.gov/stormevents/details.jsp?type=eventtype)
 
 Database possibilities:
 * AWS (RDS, DynamoDB): The free tier offers some level of service for each:
@@ -21,3 +22,9 @@ Visualization possibilities:
 
 Geographic needs/considerations for our viz:
 * Mapbox 
+
+
+Ideas:
+- Impact of hurricanes/storms on salinity and phytoplankton (chlorophyll - may not be included in all sensors)
+- Impact of precipitations on salinity, temperature and oxygen
+- Impact of El Nino on oceans
