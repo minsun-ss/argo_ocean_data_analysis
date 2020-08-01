@@ -28,6 +28,8 @@ Ideas:
 - Impact of hurricanes/storms on salinity and phytoplankton (chlorophyll - may not be included in all sensors)
 - Impact of precipitations on salinity, temperature and oxygen
 - Impact of ship activity (ex: Panama canal)
+    - https://www.northeastoceandata.org/data-download/ Under marine traffic there is AIS data for the NE ocean area from 2011 onward. 
+    Appears to be ArcGIS data; maybe we can parse it into python somehow?
 - Fish movements
 - Comparing the salinity/temperature in the St-Laurent vs Atlantic Ocean - https://open.canada.ca/data/en/dataset/8a3dc9e5-f3af-4270-8c09-43fa2c25848b
 
