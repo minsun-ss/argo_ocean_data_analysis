@@ -32,8 +32,13 @@ Ideas:
     Appears to be ArcGIS data; maybe we can parse it into python somehow?
 - Fish movements
 - Comparing the salinity/temperature in the St-Laurent vs Atlantic Ocean - https://open.canada.ca/data/en/dataset/8a3dc9e5-f3af-4270-8c09-43fa2c25848b
+- We can also merge the set with the bottom layer salinity, to see if depth changes salinity: https://open.canada.ca/data/en/dataset/9571b5fa-3311-44c8-a565-d5694f34afac
+- We can also merge it with pelagic fish data!!! https://open.canada.ca/data/en/dataset/267e20aa-97e8-43da-8c23-1234376938bc 
+
+Seems like there is a richness of data for the Estuary and Gulf of St Lawrence, and I think there is argo data for this area as well? 
+
 
 TODO:
 - Find EU data source for weather forecast and historical weather data
 - Play with the data, choose a scope for Tuesday
-
+- If we go with Gulf of St Lawrence data, double check to make sure Gulf data is in Argo data to have overlapping data sets.
