@@ -23,7 +23,6 @@ Visualization possibilities:
 Geographic needs/considerations for our viz:
 * Mapbox 
 
-
 Ideas:
 - Impact of hurricanes/storms on salinity and phytoplankton (chlorophyll - may not be included in all sensors)
 - Impact of precipitations on salinity, temperature and oxygen
@@ -40,8 +39,13 @@ Ideas:
 
 Seems like there is a richness of data for the Estuary and Gulf of St Lawrence, and I think there is argo data for this area as well? 
 
-
 TODO:
 - Find EU data source for weather forecast and historical weather data
 - Play with the data, choose a scope for Tuesday
 - If we go with Gulf of St Lawrence data, double check to make sure Gulf data is in Argo data to have overlapping data sets.
+
+UPDATES  - I guess we could read our commits, but this might be easier. :) 
+- Started exploring the pelagic fish data (see pelagic_analysis.ipynb)
+- Started filling out the proposal doc and changed up formatting a bit! Highlighted in yellow what is wanted from us to fill in the doc, the rest of the words are ours. 
+- Added pelagic fish data to our data folder - we can use this as a repository for data as a copy to whatever we push to db.
+- Added an etl folder (actually, set it up as a package) - so we can set up the code to push data into a database or pull out of it. Should also be where we house our API calls. 

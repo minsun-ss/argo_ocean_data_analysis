@@ -1,0 +1,24 @@
+Data dictionary / Dictionnaire de données,,,
+Column name/Nom de la colonne,Description_EN,Description_FR,
+FID,Sequential unique whole numbers that are automatically generated,Numéro séquentiel unique généré automatiquement,
+Date,Sampling data,Date de l'échantillonnage,
+Station,Station number,Numéro de station,
+Longitude,Sampling longitude (degree),Longitude de l'échantillonnage (degré),
+Latitude,Sampling latitude (degree),Latitude de l'échantillonnage (degré),
+Profondeur/Depth,Sampling depth (m),Profondeur de l'échantillonnage (m),
+Other columns/Autres colonnees,Species abondance (number/trawl set),Abondance de l'espèce (nombre/trait de chalut),
+,,,
+Species,Name _EN,Nom_FR,Scientific name / Nom scientifique
+AMSPP,Sand Lances (Ammodytes sp.),Lançons (Ammodytes sp.),Ammodytes sp.
+ARRIS,White Barracudina,Lussion blanc,Arctozenus risso
+ARSIL,Atlantic Argentine,Grande argentine,Argentina silus
+BOSAI,Arctic Cod,Saïda franc (Morue arctique),Boreogadus saida
+CLHAR,Atlantic Herring,Hareng atlantique,Clupea harengus
+CYLUM,Lumpfish,Grosse poule de mer,Cyclopterus lumpus
+GAACU,Threespine Stickleback,Épinoche à trois épines,Gasterosteus aculeatus aculeatus
+MAVIL,Capelin (M. villosus),Capelan (M. villosus),Mallotus villosus
+MEATL,Atlantic Soft Pout,Molasse atlantique,Melanostigma atlanticum
+MEBIL,Silver Hake,Merlu argenté,Merluccius bilinearis
+OSMOR,Rainbow Smelt,Éperlan arc-en-ciel,Osmerus mordax mordax
+POVIR,Pollock,Goberge,Pollachius virens
+SCSCO,Atlantic Mackerel (S. scombrus),Maquereau bleu (S. scombrus),Scomber scombrus
