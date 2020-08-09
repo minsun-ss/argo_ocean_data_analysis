@@ -4,6 +4,8 @@ import io
 import matplotlib.pyplot as plt
 
 
+''' Author: Sharon Sung for extra credit in SIADS 521'''
+
 def display(df, order=None, type='line', max_rows=7, max_cols=999):
     ''' Builds a tiny sparkline for every numeric column of a given dataframe and integrates it as part of
     a dataframe column header. Sorry, does not accept Series as the moment!
