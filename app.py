@@ -14,9 +14,9 @@ app.title = 'Ocean Temperature and Salinity in the Estuary and Gulf of St. Lawre
 server = app.server
 
 app.layout = html.Div([
-    html.Div([html.H1("Some Stuff")], id='title', title='atitle')
-    , html.Iframe(id='map', src=app.get_asset_url('test.html'), width='100%', height='300')
-    , html.Div(dcc.Graph(id='fish'))
+    html.Div([html.H3("Estuary and Gulf of St. Lawrence")], id='title', title='atitle')
+    , html.Div(children=[html.Div(dcc.Graph(id='fish', config={'autosizable': True}))])
+    , html.Iframe(id='map', src=app.get_asset_url('test.html'), width='100%', height='600')
 ])
 
 @app.callback(
@@ -33,8 +33,8 @@ def update_figure(selected):
                 marker=dict(size=4)
             )
         ],
-        'layout': go.Layout(autosize=True, hovermode='closest', height=900
-        , mapbox = {'accesstoken': cfg.MAPBOX_TOKEN, 'bearing': 0, 'layers':
+        'layout': go.Layout(autosize=True, hovermode='closest', height=600
+                            , mapbox = {'accesstoken': cfg.MAPBOX_TOKEN, 'bearing': 0, 'layers':
                 [dict(sourcetype='geojson', source=gulf_geojson, type='fill', color = 'rgba(208,28,139,0.8)')]
                     , 'center': {'lat': 48, 'lon': -61}, 'zoom': 5
                     , 'style': 'mapbox://styles/mapbox/light-v9'
