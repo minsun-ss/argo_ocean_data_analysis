@@ -13,11 +13,16 @@ app = dash.Dash(__name__)
 app.title = 'Ocean Temperature and Salinity in the Estuary and Gulf of St. Lawrence'
 server = app.server
 
-app.layout = html.Div([
-    html.Div([html.H3("Estuary and Gulf of St. Lawrence")], id='title', title='atitle')
-    , html.Div(children=[html.Div(dcc.Graph(id='fish', config={'autosizable': True}))])
-    , html.Iframe(id='map', src=app.get_asset_url('test.html'), width='100%', height='600')
-])
+# Serve layout separately in order for page to always load this layout on default
+def serve_layout():
+    return html.Div([
+        html.Div([html.H3("Estuary and Gulf of St. Lawrence")], id='title', title='atitle')
+        , html.Div(children=[html.Div(dcc.Graph(id='fish',
+                                            config={'autosizable': True, 'displaylogo': False, 'displayModeBar': False}
+                                            , style={'width': '100%'}))])
+        , html.Iframe(id='map', src=app.get_asset_url('test.html'), width='100%', height='600')
+    ])
+app.layout = serve_layout
 
 @app.callback(
     dash.dependencies.Output('fish', 'figure')
@@ -41,6 +46,9 @@ def update_figure(selected):
                     }
         )
     }
+
+
+
 
 if __name__== '__main__':
     app.run_server(debug=True)
