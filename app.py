@@ -39,6 +39,7 @@ def update_figure(selected):
             )
         ],
         'layout': go.Layout(autosize=True, hovermode='closest', height=600
+                            , margin=dict(l=0, r=0, b=0, t=0, pad=0)
                             , mapbox = {'accesstoken': cfg.MAPBOX_TOKEN, 'bearing': 0, 'layers':
                 [dict(sourcetype='geojson', source=gulf_geojson, type='fill', color = 'rgba(208,28,139,0.8)')]
                     , 'center': {'lat': 48, 'lon': -61}, 'zoom': 5
