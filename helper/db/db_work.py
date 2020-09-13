@@ -9,10 +9,7 @@ REGION = 'us-east-1'
 DB = 'TBD'
 AWS_ACCESS_KEY = ''
 AWS_SECRET_KEY = ''
-host = ''
-port= 3306
-user='username'
-pw = 'password'
+cfg = {'host': '', 'port': 3306, 'user': 'username', 'pw':'password'}
 
 def get_db_instances():
     'Gets db instance params from RDS via boto3 client'
@@ -32,4 +29,5 @@ def _buildConnection(config, database):
     return conn
 
 def run_query(conn, sql):
+    conn = _buildConnection(cfg, database='')
     return pd.read_sql(sql, conn)
