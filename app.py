@@ -16,7 +16,7 @@ server = app.server
 # Serve layout separately in order for page to always load this layout on default
 def serve_layout():
     return html.Div([
-        html.Div([html.H3("Estuary and Gulf of St. Lawrence")], id='title', title='atitle')
+        html.Div([html.H2("Estuary and Gulf of St. Lawrence: Temperatures, Salinity, and Fish Populations")], id='title', title='atitle')
         , html.Div(children=[html.Div(dcc.Graph(id='fish',
                                             config={'autosizable': True, 'displaylogo': False, 'displayModeBar': False}
                                             , style={'width': '100%'}))])
