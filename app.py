@@ -15,13 +15,17 @@ server = app.server
 
 # Serve layout separately in order for page to always load this layout on default
 def serve_layout():
-    return html.Div([
-        html.Div([html.H2("Estuary and Gulf of St. Lawrence: Temperatures, Salinity, and Fish Populations")], id='title', title='atitle')
-        , html.Div(children=[html.Div(dcc.Graph(id='fish',
-                                            config={'autosizable': True, 'displaylogo': False, 'displayModeBar': False}
-                                            , style={'width': '100%'}))])
+    return html.Div(children=[
+        html.Div([html.H2("Estuary and Gulf of St. Lawrence: Temperatures, Salinity, and Fish Populations")],
+                 id='title', title='atitle')
+        , html.Div(children=[html.Div(children=[html.H4('Options'),
+                                      dcc.Dropdown(id='fish_dropdown', options=[
+                                          {'label': 'Fish1', 'value': 0}, {'label': 'Fish2', 'value': 1}])]
+                                      , className='two columns')])
+        , html.Div(dcc.Graph(id='fish',config={'autosizable': True, 'displaylogo': False, 'displayModeBar': False}
+                             , style={'width': '100%'}),  className='ten columns')
         , html.Iframe(id='map', src=app.get_asset_url('test.html'), width='100%', height='600')
-    ])
+])
 app.layout = serve_layout
 
 @app.callback(
