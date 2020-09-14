@@ -4,12 +4,7 @@ import pandas as pd
 import numpy as np
 import datetime
 import boto3
-
-REGION = 'us-east-1'
-DB = 'TBD'
-AWS_ACCESS_KEY = ''
-AWS_SECRET_KEY = ''
-cfg = {'host': '', 'port': 3306, 'user': 'username', 'pw':'password'}
+from helper import config
 
 def get_db_instances():
     'Gets db instance params from RDS via boto3 client'
@@ -23,11 +18,18 @@ def get_db_instances():
     except Exception as e:
         raise e
 
-def _buildConnection(config, database):
-    conn = pymysql.connect(host=config['host'], user=config['username'], password=config['password'],
-                           database=database, client_flag=CLIENT.MULTI_STATEMENTS)
+def _buildConnection(database='ocean'):
+    conn = pymysql.connect(host=config.RDS_HOST, user=config.RDS_USERNAME, password=config.RDS_PASSWORD, port=config.RDS_PORT,
+                           database=config.RDS_DATABASE, client_flag=CLIENT.MULTI_STATEMENTS)
     return conn
 
-def run_query(conn, sql):
+def run_query(conn, sql=None):
+    sql="SHOW DATABASES"
     conn = _buildConnection(cfg, database='')
-    return pd.read_sql(sql, conn)
+    cur = conn.cursor()
+    cur.execute(sql)
+    output = cur.fetchall()
+    print(output)
+    conn.close()
+
+run_query(_buildConnection())

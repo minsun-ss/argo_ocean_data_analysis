@@ -2,7 +2,8 @@
 
 MAPBOX_TOKEN = 'pk.eyJ1IjoibWluc3VuIiwiYSI6ImNqdjRqNGF3ZjJyaDYzeXMwcWpzOTE5ODkifQ.9DOLjPum-SBZ7kSUP264eQ'
 
-RDS_username = 'argo'
-RDS_pword = 'cLeHhyZHBYZPLzBNJhjg'
-RDS_endpoint = 'oceandb.cvgjf8n2qn4t.us-east-2.rds.amazonaws.com'
-RDS_port = 5432
+RDS_USERNAME = 'argo'
+RDS_PASSWORD = 'cLeHhyZHBYZPLzBNJhjg'
+RDS_HOST = 'oceandb.cvgjf8n2qn4t.us-east-2.rds.amazonaws.com'
+RDS_PORT = 5432
+RDS_DATABASE = 'oceandb'
