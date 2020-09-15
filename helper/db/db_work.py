@@ -41,5 +41,36 @@ def run_query(conn, sql=None):
         print(output)
         return output
 
+def insert_table(table_name=None, df=None):
+    try:
+        conn = _buildConnection()
+        df.to_sql(name=table_name, con=conn, if_exists='append', index=False)
+        conn.close()
+    except Exception as e:
+        raise e
 
-run_query(_buildConnection())
+def _val_format(item):
+    if item is None:
+        return 'NULL'
+    elif isinstance(item, (str)):
+        item = item.replace("'", "''")
+        if len(item)==0:
+            return 'NULL'
+        else:
+            return f'\'{item}\''
+    elif isinstance(item, (decimal.Decimal, int, float, complex)):
+        return str(item)
+    elif isinstance(item, datetime.datetime):
+        item_string = item.strftime('%Y-%m-%d %H:%M:%S.%f')
+        return f'\'{item_string}\''
+    elif isinstance(item, datetime.timedelta):
+        return f'\'{item}\''
+    elif item.isnumeric():
+        return item
+    else:
+        item = item.replace("'", "''")
+        return f'\'{item}\''
+
+def _clean_df(df):
+    df = df.replace({np.nan: None})
+    return df.where(pd.notnull(df), None)
