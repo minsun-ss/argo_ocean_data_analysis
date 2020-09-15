@@ -41,9 +41,10 @@ def run_query(conn, sql=None):
         if len(output)>0:
             dict_set = map(lambda x:dict(zip(column_names, x)), output)
             return pd.DataFrame(dict_set)
+        else:
+            return None
     except Exception as e:
         print(e.args())
-
 
 
 def insert_table(table_name=None, df=None):

@@ -28,6 +28,9 @@ def serve_layout():
 ])
 app.layout = serve_layout
 
+def build_fish_dropdown():
+    pass
+
 @app.callback(
     dash.dependencies.Output('fish', 'figure')
     , [dash.dependencies.Input('title', 'title')]
