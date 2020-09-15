@@ -20,7 +20,7 @@ def get_db_instances():
 def _buildConnection(database=None):
     try:
         conn = psycopg2.connect(host=config.RDS_HOST, user=config.RDS_USERNAME, password=config.RDS_PASSWORD,
-                               port=config.RDS_PORT, database=config.RDS_DATABASE, cursor_factory=RealDictCursor)
+                               port=config.RDS_PORT, database=config.RDS_DATABASE, cursor_factory=DictCursor)
     except Exception as e:
         print(e.args)
     finally:
@@ -32,16 +32,17 @@ def run_query(conn, sql=None):
     try:
         conn = _buildConnection()
         cur = conn.cursor()
-        print(sql)
         cur.execute(sql)
         conn.commit()
+
+        column_names = [desc[0] for desc in cur.description]
         output = cur.fetchall()
-        print(output)
+        conn.close()
+        if len(output)>0:
+            dict_set = map(lambda x:dict(zip(column_names, x)), output)
+            return pd.DataFrame(dict_set)
     except Exception as e:
         print(e.args())
-    finally:
-        conn.close()
-        return output
 
 
 
@@ -80,5 +81,5 @@ def _clean_df(df):
     return df.where(pd.notnull(df), None)
 
 if __name__=='__main__':
-    # query="""SELECT count(*) FROM OCEAN_DATA"""
-    run_query(_buildConnection())
+    query="""SELECT * FROM OCEAN_DATA"""
+    blah = print((run_query(_buildConnection(), query)))
