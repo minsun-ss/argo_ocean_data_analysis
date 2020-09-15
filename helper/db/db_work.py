@@ -1,5 +1,5 @@
 import psycopg2
-from psycopg2.extras import DictCursor
+from psycopg2.extras import DictCursor, RealDictCursor
 import pandas as pd
 import numpy as np
 import datetime
@@ -20,26 +20,30 @@ def get_db_instances():
 def _buildConnection(database=None):
     try:
         conn = psycopg2.connect(host=config.RDS_HOST, user=config.RDS_USERNAME, password=config.RDS_PASSWORD,
-                               port=config.RDS_PORT, database='oceandb', cursor_factory=DictCursor)
+                               port=config.RDS_PORT, database=config.RDS_DATABASE, cursor_factory=RealDictCursor)
     except Exception as e:
         print(e.args)
     finally:
         return conn
 
 def run_query(conn, sql=None):
-    sql="SELECT * from pg_catalog.pg_tables where schemaname != 'pg_catalog' and schemaname != 'information_schema';"
+    if sql is None:
+        raise ValueError('No sql query specified')
     try:
         conn = _buildConnection()
         cur = conn.cursor()
+        print(sql)
         cur.execute(sql)
+        conn.commit()
         output = cur.fetchall()
+        print(output)
     except Exception as e:
         print(e.args())
-        raise e
     finally:
         conn.close()
-        print(output)
         return output
+
+
 
 def insert_table(table_name=None, df=None):
     try:
@@ -74,3 +78,7 @@ def _val_format(item):
 def _clean_df(df):
     df = df.replace({np.nan: None})
     return df.where(pd.notnull(df), None)
+
+if __name__=='__main__':
+    # query="""SELECT count(*) FROM OCEAN_DATA"""
+    run_query(_buildConnection())
