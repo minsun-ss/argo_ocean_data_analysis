@@ -26,7 +26,7 @@ def _buildConnection(database=None):
     finally:
         return conn
 
-def run_query(conn, sql=None):
+def run_query(sql=None):
     if sql is None:
         raise ValueError('No sql query specified')
     try:
