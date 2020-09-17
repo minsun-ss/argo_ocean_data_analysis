@@ -7,6 +7,7 @@ import boto3
 from helper import config
 from helper import sclog
 import decimal
+from sqlalchemy import create_engine
 
 sclog.logging_to_file('logging.txt')
 
@@ -30,6 +31,10 @@ def _buildConnection(database=None):
     finally:
         return conn
 
+def _buildConnectionAlchemy():
+    engine = create_engine(f'postgresql+psycopg2://{config.RDS_USERNAME}:{config.RDS_PASSWORD}@{config.RDS_HOST}:{config.RDS_PORT}/{config.RDS_DATABASE}', pool_recycle=3600);
+    return engine.connect()
+
 def run_query(sql=None):
     if sql is None:
         raise ValueError('No sql query specified')
@@ -38,6 +43,10 @@ def run_query(sql=None):
         cur = conn.cursor()
         cur.execute(sql)
         conn.commit()
+    except Exception as e:
+        sclog.log_exception(e)
+
+    try:
         output = cur.fetchall()
         if len(output)>0:
             column_names = [desc[0] for desc in cur.description]
@@ -47,14 +56,19 @@ def run_query(sql=None):
             column_names = [desc[0] for desc in cur.description]
             return pd.DataFrame(columns=column_names)
     except Exception as e:
-        sclog.log_exception(e)
+        # this is for queries that don't return anything I guess
+        return pd.DataFrame()
     finally:
         conn.close()
 
-def insert_table(table_name=None, df=None):
+def insert_full_replace(table_name=None, df=None):
+    pass
+
+def insert_table(table_name=None, df=None, if_exists='append'):
+    'For when you need to insert an entire table and just want to append and call it a day.'
     try:
-        conn = _buildConnection()
-        df.to_sql(name=table_name, con=conn, if_exists='append', index=False)
+        conn = _buildConnectionAlchemy()
+        df.to_sql(name=table_name, con=conn, if_exists=if_exists, index=False)
         conn.close()
     except Exception as e:
         print(e)

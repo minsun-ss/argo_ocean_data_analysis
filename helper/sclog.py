@@ -11,7 +11,6 @@ def get_function_name():
     return stack[0][3]
 
 def log_exception(e):
-    print(e)
-    error_message = f'Function {get_function_name()} raised {e.__class__} ({e.__doc__}): {e.message}'
+    error_message = f'Function {get_function_name()} raised {e.__class__} ({e.__doc__})'
     print(error_message)
-    logginag.error(f'Function {get_function_name()} raised {e.__class__} ({e.__doc__}): {e.message}')
+    logging.error(f'Function {get_function_name()} raised {e.__class__} ({e.__doc__})')
