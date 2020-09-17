@@ -5,6 +5,10 @@ import numpy as np
 import datetime
 import boto3
 from helper import config
+from helper import sclog
+import decimal
+
+sclog.logging_to_file('logging.txt')
 
 def get_db_instances():
     'Gets db instance params from RDS via boto3 client'
@@ -15,14 +19,14 @@ def get_db_instances():
 
         return response
     except Exception as e:
-        raise e
+        sclog.log_exception(e)
 
 def _buildConnection(database=None):
     try:
         conn = psycopg2.connect(host=config.RDS_HOST, user=config.RDS_USERNAME, password=config.RDS_PASSWORD,
                                port=config.RDS_PORT, database=config.RDS_DATABASE, cursor_factory=DictCursor)
     except Exception as e:
-        print(e.args)
+        sclog.log_exception(e)
     finally:
         return conn
 
@@ -43,10 +47,9 @@ def run_query(sql=None):
             column_names = [desc[0] for desc in cur.description]
             return pd.DataFrame(columns=column_names)
     except Exception as e:
-        print(e)
+        sclog.log_exception(e)
     finally:
         conn.close()
-
 
 def insert_table(table_name=None, df=None):
     try:
@@ -54,7 +57,7 @@ def insert_table(table_name=None, df=None):
         df.to_sql(name=table_name, con=conn, if_exists='append', index=False)
         conn.close()
     except Exception as e:
-        raise e
+        print(e)
 
 def _val_format(item):
     if item is None:
@@ -81,7 +84,3 @@ def _val_format(item):
 def _clean_df(df):
     df = df.replace({np.nan: None})
     return df.where(pd.notnull(df), None)
-
-if __name__=='__main__':
-    query="""SELECT * FROM OCEAN_DATA"""
-    blah = print((run_query(_buildConnection(), query)))
