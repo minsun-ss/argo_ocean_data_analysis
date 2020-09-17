@@ -34,17 +34,18 @@ def run_query(sql=None):
         cur = conn.cursor()
         cur.execute(sql)
         conn.commit()
-
-        column_names = [desc[0] for desc in cur.description]
         output = cur.fetchall()
-        conn.close()
         if len(output)>0:
+            column_names = [desc[0] for desc in cur.description]
             dict_set = map(lambda x:dict(zip(column_names, x)), output)
             return pd.DataFrame(dict_set)
         else:
-            return None
+            column_names = [desc[0] for desc in cur.description]
+            return pd.DataFrame(columns=column_names)
     except Exception as e:
-        print(e.args())
+        print(e)
+    finally:
+        conn.close()
 
 
 def insert_table(table_name=None, df=None):
