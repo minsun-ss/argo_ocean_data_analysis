@@ -1,5 +1,5 @@
 import psycopg2
-from psycopg2.extras import DictCursor, RealDictCursor
+from psycopg2.extras import DictCursor
 import pandas as pd
 import numpy as np
 import datetime
@@ -26,6 +26,7 @@ def _buildConnection(database=None):
     try:
         conn = psycopg2.connect(host=config.RDS_HOST, user=config.RDS_USERNAME, password=config.RDS_PASSWORD,
                                port=config.RDS_PORT, database=config.RDS_DATABASE, cursor_factory=DictCursor)
+        conn.autocommit = True
     except Exception as e:
         sclog.log_exception(e)
     finally:
@@ -33,7 +34,9 @@ def _buildConnection(database=None):
 
 def _buildConnectionAlchemy():
     engine = create_engine(f'postgresql+psycopg2://{config.RDS_USERNAME}:{config.RDS_PASSWORD}@{config.RDS_HOST}:{config.RDS_PORT}/{config.RDS_DATABASE}', pool_recycle=3600);
-    return engine.connect()
+    conn = engine.connect()
+    conn.autocommit = True
+    return conn
 
 def run_query(sql=None):
     if sql is None:
@@ -42,10 +45,10 @@ def run_query(sql=None):
         conn = _buildConnection()
         cur = conn.cursor()
         cur.execute(sql)
-        conn.commit()
     except Exception as e:
         sclog.log_exception(e)
 
+    # for when your query returns results
     try:
         output = cur.fetchall()
         if len(output)>0:
@@ -56,17 +59,24 @@ def run_query(sql=None):
             column_names = [desc[0] for desc in cur.description]
             return pd.DataFrame(columns=column_names)
     except Exception as e:
-        # this is for queries that don't return anything I guess
         return pd.DataFrame()
     finally:
         conn.close()
 
 def insert_full_replace(table_name=None, df=None):
+    'For when you need to insert and replace on collision.'
+
+
     pass
 
 def insert_table(table_name=None, df=None, if_exists='append'):
-    'For when you need to insert an entire table and just want to append and call it a day.'
+    # For when you need to insert an entire table and just want to append and call it a day.
+    # THIS ONLY WORKS WITH NON MIXED CASE FIELDS OH MY GOD POSTGRES WHAT IS WRONG WITH YOU
+    if df is None:
+        raise ValueError('No dataframe provided')
     try:
+        df = _clean_df(df)
+
         conn = _buildConnectionAlchemy()
         df.to_sql(name=table_name, con=conn, if_exists=if_exists, index=False)
         conn.close()
@@ -96,5 +106,7 @@ def _val_format(item):
         return f'\'{item}\''
 
 def _clean_df(df):
+    # cleaning up the df of nan/null values that dbs don't take very kindly to. To be done prior to val_format()
+    # formatting.
     df = df.replace({np.nan: None})
     return df.where(pd.notnull(df), None)
