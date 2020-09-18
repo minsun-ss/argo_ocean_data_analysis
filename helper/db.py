@@ -9,7 +9,7 @@ from helper import config
 import decimal
 from sqlalchemy import create_engine
 
-sclog.logging_to_file('logging.txt')
+# sclog.logging_to_file('logging.txt')
 
 def get_db_instances():
     'Gets db instance params from RDS via boto3 client'
