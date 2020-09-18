@@ -22,11 +22,17 @@ def serve_layout():
         html.Div([html.H2("Estuary and Gulf of St. Lawrence: Temperatures, Salinity, and Fish Populations")],
                  id='title', title='atitle')
         , html.Div(children=[html.Div(children=[html.H4('Options'),
-                                      dcc.Dropdown(id='fish_dropdown', options=[
-                                          {'label': 'Fish1', 'value': 0}, {'label': 'Fish2', 'value': 1}])]
+                                                dcc.Dropdown(id='fish_dropdown', options=[{'label': 'Fish1', 'value': 0}, {'label': 'Fish2', 'value': 1}]),
+                                                html.H4('Factors'),
+                                                dcc.Dropdown(id='factor_dropdown', options=[{'label': 'Temperature', 'value': 0}, {'label': 'Salinity', 'value': 1}])
+                                                ]
                                       , className='two columns')])
         , html.Div(dcc.Graph(id='fish',config={'autosizable': True, 'displaylogo': False, 'displayModeBar': False}
                              , style={'width': '100%'}),  className='ten columns')
+        , html.Div(children=[
+            html.Div(html.H2(), className='two columns'),
+            html.Div(dcc.RangeSlider(min=2009, max=2019, step=1, value=[2009,2019], dots=True,
+                                     marks={i: str(i) for i in range(2009,2020)}), className='ten columns')])
         , html.Iframe(id='map', src=app.get_asset_url('test.html'), width='100%', height='600')
 ])
 app.layout = serve_layout
