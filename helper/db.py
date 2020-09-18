@@ -5,7 +5,7 @@ import numpy as np
 import datetime
 import boto3
 from helper import config
-from helper import sclog
+# from helper import sclog
 import decimal
 from sqlalchemy import create_engine
 
@@ -20,7 +20,8 @@ def get_db_instances():
 
         return response
     except Exception as e:
-        sclog.log_exception(e)
+        raise e
+        # sclog.log_exception(e)
 
 def _buildConnection(database=None):
     try:
@@ -28,7 +29,8 @@ def _buildConnection(database=None):
                                port=config.RDS_PORT, database=config.RDS_DATABASE, cursor_factory=DictCursor)
         conn.autocommit = True
     except Exception as e:
-        sclog.log_exception(e)
+        raise e
+        # sclog.log_exception(e)
     finally:
         return conn
 
@@ -46,7 +48,8 @@ def run_query(sql=None):
         cur = conn.cursor()
         cur.execute(sql)
     except Exception as e:
-        sclog.log_exception(e)
+        raise e
+        # sclog.log_exception(e)
 
     # for when your query returns results
     try:

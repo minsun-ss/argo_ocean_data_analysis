@@ -3,10 +3,13 @@ import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objs as go
 import json
+# from helper import db
 import pandas as pd
 from helper import config as cfg
 
 gulf_geojson = json.load(open('assets/iho.json'))
+# fish_data = db.run_query()
+fish_data = pd.read_csv('test.csv') # dummy query to avoid hitting up RDS for testing
 
 # Note that static assets such as html and the like must be served from the asset folders because Dash is pain
 app = dash.Dash(__name__)
@@ -39,8 +42,8 @@ def update_figure(selected):
     return {
         'data': [
             go.Scattermapbox(
-                lat=[45.659196],
-                lon=[-66.196285],
+                lat=fish_data['latitude'].tolist(),
+                lon=fish_data['longitude'].tolist(),
                 mode='markers',
                 marker=dict(size=4)
             )
