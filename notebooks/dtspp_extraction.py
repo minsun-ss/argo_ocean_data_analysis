@@ -38,12 +38,14 @@ def extract_to_folder(location):
 
     # right now only unzips 1 file at a time
     try:
-        for i in file_list[1:2]:
+        for i in file_list[38:39]:
             print(i)
             gtspp = tarfile.open(f'../data/gtspp/{i}')
             gtspp.extractall(location)
             'Checking the contents of the folder'
             find_gulf_data(location)
+            'Deleting contents'
+            delete_folder_contents(f'{location}/atlantic')
         print('Done.')
     except:
         raise
@@ -59,6 +61,7 @@ def find_gulf_data(location):
     gtspp_directory = f'{gtspp_directory}/{year_value[0]}'
     month_value = os.listdir(gtspp_directory)
     gtspp_directory = f'{gtspp_directory}/{month_value[0]}'
+    print(gtspp_directory)
 
     for file in os.listdir(gtspp_directory):
         data = netCDF4.Dataset(f'{gtspp_directory}/{file}')
@@ -74,10 +77,10 @@ def find_gulf_data(location):
             position_quality = position_quality[position_quality.mask == False].data[0]
             station_id = data.variables['gtspp_station_id'][:]
             station_id = station_id[station_id.mask == False].data[0]
-            time = data.variables['time'][:]
-            time = time[time.mask == False].data[0][0]
-            time_quality = data.variables['time_quality_flag'][:]
-            time_quality = time_quality[time_quality.mask == False].data[0]
+            measure_time = data.variables['time'][:]
+            measure_time = measure_time[measure_time.mask == False].data[0][0]
+            measure_time_quality = data.variables['time_quality_flag'][:]
+            measure_time_quality = time_quality[time_quality.mask == False].data[0]
 
             salinity = data.variables['salinity'][:]
             salinity = salinity[salinity.mask == False].data.flatten(order='C')
@@ -92,9 +95,9 @@ def find_gulf_data(location):
             temperature_quality = data.variables['temperature_quality_flag'][:]
             temperature_quality = temperature_quality[temperature_quality.mask == False].data.flatten()
 
-            data_single_line = pd.DataFrame([long, lat, position_quality, station_id, time, time_quality]).transpose()
-            data_single_line.columns = ['longitude', 'latitude', 'position_quality', 'station_id', 'time',
-                                        'time_quality']
+            data_single_line = pd.DataFrame([long, lat, position_quality, station_id, measure_time, measure_time_quality]).transpose()
+            data_single_line.columns = ['longitude', 'latitude', 'position_quality', 'station_id', 'measure_time',
+                                        'measure_time_quality']
             data_multiple_value = pd.DataFrame(
                 list(zip(salinity, salinity_quality, depth, depth_quality, temperature, temperature_quality)))
             data_multiple_value.columns = ['salinity', 'salinity_quality', 'depth', 'depth_quality', 'temperature',
@@ -115,3 +118,4 @@ def run_process():
         get_data(i)
 
 print(extract_to_folder('../data/gtspp'))
+
