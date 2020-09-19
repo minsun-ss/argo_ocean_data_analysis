@@ -80,7 +80,7 @@ def find_gulf_data(location):
             measure_time = data.variables['time'][:]
             measure_time = measure_time[measure_time.mask == False].data[0][0]
             measure_time_quality = data.variables['time_quality_flag'][:]
-            measure_time_quality = time_quality[time_quality.mask == False].data[0]
+            measure_time_quality = measure_time_quality[measure_time_quality.mask == False].data[0]
 
             salinity = data.variables['salinity'][:]
             salinity = salinity[salinity.mask == False].data.flatten(order='C')
