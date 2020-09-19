@@ -6,6 +6,7 @@ import os
 import tarfile
 import shutil
 from shapely.geometry import shape, Point
+import shapefile
 
 def get_data(year):
     # extracts the tarzips from ftp for a specific year and dumps them into the data folder
@@ -15,7 +16,6 @@ def get_data(year):
     directory = '/pub/data.nodc/gtspp/best_nc'
     month = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
 
-    from ftplib import FTP
     ftp = FTP(url)
     ftp.login()
     ftp.cwd(directory)
@@ -38,36 +38,71 @@ def extract_to_folder(location):
 
     # right now only unzips 1 file at a time
     try:
-        for i in file_list[:1]:
+        for i in file_list[1:2]:
             print(i)
             gtspp = tarfile.open(f'../data/gtspp/{i}')
             gtspp.extractall(location)
+            'Checking the contents of the folder'
+            find_gulf_data(location)
         print('Done.')
     except:
         raise
 
-def find_gulf_data():
+def find_gulf_data(location):
     # start opening up the nc files and finding point data. Returns a dataframe with matching points
     # and accompanying data, uncleaned.
-    r = shapefile.Reader('../assets/shapefile/iho.shp')
+    r = shapefile.Reader('../assets/shapefile/iho.shap')
     gulf = shape(r.shapes()[0])
-    print(shapes)
 
-    gstpp_directory = '../data/gtspp/atlantic/2009/01'
-    latitude, longitude = [], []
-    for file in os.listdir(gstpp_directory):
-        cdf_coordinates = netCDF4.Dataset(f'{gstpp_directory}/{file}')
+    gtspp_directory = f'{location}/atlantic'
+    year_value = os.listdir(gtspp_directory)
+    gtspp_directory = f'{gtspp_directory}/{year_value[0]}'
+    month_value = os.listdir(gtspp_directory)
+    gtspp_directory = f'{gtspp_directory}/{month_value[0]}'
+
+    for file in os.listdir(gtspp_directory):
+        data = netCDF4.Dataset(f'{gtspp_directory}/{file}')
 
         # first check to see if the point is within the area
-        array_lat, array_long = cdf_coordinates.variables['latitude'][:], cdf_coordinates.variables['longitude'][:]
-        lat = array_lat[array_lat.mask == False].data[0].tolist()[0]
-        long = array_long[array_long.mask == False].data[0].tolist()[0]
-        print(long, lat)
-        point = Point(long, lat)
+        array_lat, array_long = data.variables['latitude'][:], data.variables['longitude'][:]
+        lat, long = data.variables['latitude'][:][0], data.variables['longitude'][:][0]
+        print(lat, long)
 
+        point = Point(long, lat)
         if gulf.contains(point):
-            print(lat, long)
-            break
+            position_quality = data.variables['position_quality_flag'][:]
+            position_quality = position_quality[position_quality.mask == False].data[0]
+            station_id = data.variables['gtspp_station_id'][:]
+            station_id = station_id[station_id.mask == False].data[0]
+            time = data.variables['time'][:]
+            time = time[time.mask == False].data[0][0]
+            time_quality = data.variables['time_quality_flag'][:]
+            time_quality = time_quality[time_quality.mask == False].data[0]
+
+            salinity = data.variables['salinity'][:]
+            salinity = salinity[salinity.mask == False].data.flatten(order='C')
+            salinity_quality = data.variables['salinity_quality_flag'][:]
+            salinity_quality = salinity_quality[salinity_quality.mask == False].data.flatten()
+            depth = data.variables['z'][:]
+            depth = depth[depth.mask == False].data.flatten()
+            depth_quality = data.variables['z_variable_quality_flag'][:]
+            depth_quality = depth_quality[depth_quality.mask == False].data.flatten()
+            temperature = data.variables['temperature'][:]
+            temperature = temperature[temperature.mask == False].data.flatten()
+            temperature_quality = data.variables['temperature_quality_flag'][:]
+            temperature_quality = temperature_quality[temperature_quality.mask == False].data.flatten()
+
+            data_single_line = pd.DataFrame([long, lat, position_quality, station_id, time, time_quality]).transpose()
+            data_single_line.columns = ['longitude', 'latitude', 'position_quality', 'station_id', 'time',
+                                        'time_quality']
+            data_multiple_value = pd.DataFrame(
+                list(zip(salinity, salinity_quality, depth, depth_quality, temperature, temperature_quality)))
+            data_multiple_value.columns = ['salinity', 'salinity_quality', 'depth', 'depth_quality', 'temperature',
+                                           'temperature_quality']
+            data_single_line['merge'], data_multiple_value['merge'] = 0, 0
+            final = data_single_line.merge(data_multiple_value, how='inner', on='merge')
+
+            return final
 
 def delete_folder_contents(location):
     # to remove files
@@ -79,4 +114,4 @@ def run_process():
         # grabbing data
         get_data(i)
 
-extract_to_folder('../data/gtspp')
+print(extract_to_folder('../data/gtspp'))
