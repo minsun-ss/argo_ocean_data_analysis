@@ -52,8 +52,9 @@ def param(columns):
     return param
 
 class argo_manipulation:
-    def __init__(self, fname=None):
+    def __init__(self, fname=None, fdate=None):
         self.fname = fname
+        self.fdate = fdate
         self.argo = netCDF4.Dataset(self.fname)
 
     def unmask_variables(self):
@@ -89,19 +90,23 @@ class argo_manipulation:
         latitude_limits = (self.argo_df["LATITUDE"] > 38) & (self.argo_df["LATITUDE"] < 59)
         longitude_limits = (self.argo_df["LONGITUDE"] > -70) & (self.argo_df["LONGITUDE"] < -35)
         self.argo_df = (self.argo_df[latitude_limits & longitude_limits]
-                   [["CYCLE_NUMBER", "DATE_CREATION", "PLATFORM_NUMBER", "LATITUDE", "LONGITUDE", "PRES", "PRES_ADJUSTED",
+                   [["CYCLE_NUMBER", "PLATFORM_NUMBER", "LATITUDE", "LONGITUDE", "PRES", "PRES_ADJUSTED",
                      "TEMP", "TEMP_ADJUSTED",
                      "PSAL", "PSAL_ADJUSTED", "PROJECT_NAME"]]
                    .rename(columns={"PLATFORM_NUMBER": "floatid", "LATITUDE": "latitude", "LONGITUDE": "longitude",
                                     "PROJECT_NAME": "data_source"})
                    )
 
+        # Create date column based on file name
+        file_date = self.fdate.split("_")[0]
+        self.argo_df["date"] = file_date
+        self.argo_df["data_date"] = pd.to_datetime(self.argo_df["date"])
+
     def unnest_param(self):
         '''Parameters are list of all measures taken in a cycle. We need to unnest the data to get a single value per row.
         By default, NaN values are stored as 99999.000 so we are dropping these as they indicate no measure was taken.'''
         to_unnest = ['PRES', 'PRES_ADJUSTED', 'PSAL', 'PSAL_ADJUSTED', 'TEMP', 'TEMP_ADJUSTED']
 
-        self.argo_df["data_date"] = pd.to_datetime(self.argo_df["DATE_CREATION"])
         unnested_argo = unnesting(self.argo_df, to_unnest)
         unnested_argo["temperature"] = param([unnested_argo["TEMP"], unnested_argo["TEMP_ADJUSTED"]])
         unnested_argo["salinity"] = param([unnested_argo["PSAL"], unnested_argo["PSAL_ADJUSTED"]])
@@ -132,12 +137,12 @@ def main():
         with FTP("usgodae.org") as ftp:
             ftp.login()
             ftp.cwd(f'/pub/outgoing/argo/geo/atlantic_ocean/{year}')
-            for month in ftp.nlst():
+            for month in ftp.nlst()[:2]:
                 ftp.cwd(f'{month}')
-                for daily_file in ftp.nlst():
+                for daily_file in ftp.nlst()[:2]:
                     with open('argo_daily_file', "wb") as fp:
                         ftp.retrbinary(f"RETR {daily_file}", fp.write)
-                        myobject = argo_manipulation(fname = "argo_daily_file")
+                        myobject = argo_manipulation(fname = "argo_daily_file", fdate=daily_file)
                         myobject.manipulation_pipeline()
                         insert_table("ocean_data", myobject.argo_df)
                 ftp.cwd("../")
