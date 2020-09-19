@@ -11,6 +11,10 @@ gulf_geojson = json.load(open('assets/iho.json'))
 # fish_data = db.run_query()
 fish_data = pd.read_csv('test.csv') # dummy query to avoid hitting up RDS for testing
 
+def build_fish_dropdown():
+    dropdown_labels = [{'label': i, 'value': i} for i in fish_data.columns]
+    return dropdown_labels
+
 # Note that static assets such as html and the like must be served from the asset folders because Dash is pain
 app = dash.Dash(__name__)
 app.title = 'Ocean Temperature and Salinity in the Estuary and Gulf of St. Lawrence'
@@ -18,31 +22,34 @@ server = app.server
 
 # Serve layout separately in order for page to always load this layout on default
 def serve_layout():
+    fish_name = build_fish_dropdown()
     return html.Div(children=[
         html.Div([html.H2("Estuary and Gulf of St. Lawrence: Temperatures, Salinity, and Fish Populations")],
                  id='title', title='atitle')
         , html.Div(children=[html.Div(children=[html.H4('Options'),
-                                                dcc.Dropdown(id='fish_dropdown', options=[{'label': 'Fish1', 'value': 0}, {'label': 'Fish2', 'value': 1}]),
+                                                dcc.Dropdown(id='fish_dropdown', options=fish_name),
                                                 html.H4('Factors'),
                                                 dcc.Dropdown(id='factor_dropdown', options=[{'label': 'Temperature', 'value': 0}, {'label': 'Salinity', 'value': 1}])
                                                 ]
                                       , className='two columns')])
-        , html.Div(dcc.Graph(id='fish',config={'autosizable': True, 'displaylogo': False, 'displayModeBar': False}
-                             , style={'width': '100%'}),  className='ten columns')
+        , html.Div(children=[dcc.Graph(id='fish',config={'autosizable': True, 'displaylogo': False, 'displayModeBar': False}
+                             , style={'width': '100%'}),
+                             html.Div(dcc.RangeSlider(min=2009, max=2019, step=1, value=[2009, 2019], dots=True,
+                                             marks={i: str(i) for i in range(2009, 2020)}),
+                                      style={'marginBottom': 25, 'marginTop': 25})
+                             ],  className='ten columns')
         , html.Div(children=[
             html.Div(html.H2(), className='two columns'),
-            html.Div(dcc.RangeSlider(min=2009, max=2019, step=1, value=[2009,2019], dots=True,
-                                     marks={i: str(i) for i in range(2009,2020)}), className='ten columns')])
+            html.Div(className='ten columns')])
         , html.Iframe(id='map', src=app.get_asset_url('test.html'), width='100%', height='600')
 ])
 app.layout = serve_layout
 
-def build_fish_dropdown():
-    pass
+
 
 @app.callback(
     dash.dependencies.Output('fish', 'figure')
-    , [dash.dependencies.Input('title', 'title')]
+    , [dash.dependencies.Input('fish_dropdown', 'value')]
 )
 def update_figure(selected):
     return {
