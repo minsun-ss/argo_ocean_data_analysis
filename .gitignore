@@ -4,3 +4,5 @@ docs/draft_proposal.docx
 docs/draft_proposal.docx
 venv/
 .idea/
+notebooks/argo
+helper/argo_daily_file
