@@ -3,6 +3,7 @@ import numpy as np
 import netCDF4
 from db import insert_table
 from ftplib import FTP
+import time
 import os
 
 
@@ -130,24 +131,49 @@ class argo_manipulation:
         self.unnest_param()
         self.depth_bins()
 
-def main():
-    '''For each file in the years we are interested in, run pipeline. For local testing, use files in data folder'''
+def download_files():
+    '''For each file in the years we are interested in, download file to local folder.'''
 
-    for year in range(2009, 2011):
-        with FTP("usgodae.org") as ftp:
-            ftp.login()
+    with FTP("usgodae.org") as ftp:
+         ftp.login()
+         for year in range(2009, 2020):
             ftp.cwd(f'/pub/outgoing/argo/geo/atlantic_ocean/{year}')
-            for month in ftp.nlst()[:2]:
+            for month in ftp.nlst():
                 ftp.cwd(f'{month}')
-                for daily_file in ftp.nlst()[:2]:
-                    with open('argo_daily_file', "wb") as fp:
-                        ftp.retrbinary(f"RETR {daily_file}", fp.write)
-                        myobject = argo_manipulation(fname = "argo_daily_file", fdate=daily_file)
-                        myobject.manipulation_pipeline()
-                        insert_table("ocean_data", myobject.argo_df)
+                for daily_file in ftp.nlst():
+                    with open(daily_file, "wb") as fp:
+                        success = False
+                        while not success:
+                            try:
+                                ftp.retrbinary(f"RETR {daily_file}", fp.write)
+                                print(f"Retrieved {daily_file}")
+                                success = True
+                            except:
+                                print(f"Sleeping because {daily_file} error'd")
+                                time.sleep(1)
                 ftp.cwd("../")
             ftp.cwd("../")
-        ftp.quit()
+         ftp.quit()
+
+def process_files():
+    '''For each file in the local folder, run pipeline.'''
+    directory = r'C:\Users\Kik\Documents\GitHub\argo_ocean_data_analysis\helper'
+    for daily_file in os.listdir(directory):
+        if daily_file.endswith(".nc"):
+            success = False
+            while not success:
+                try:
+                    myobject = argo_manipulation(fname=daily_file, fdate=daily_file)
+                    myobject.manipulation_pipeline()
+                    insert_table("ocean_data", myobject.argo_df)
+                    print(f"Inserted {daily_file} into ocean_data")
+                    success = True
+                except:
+                    print(f"{daily_file} not written to db")
+                    time.sleep(1)
+        else:
+            pass
 
 if __name__ == '__main__':
-    main()
+    #download_files()
+    process_files()
