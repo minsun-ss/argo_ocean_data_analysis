@@ -61,11 +61,14 @@ class argo_manipulation:
     def unmask_variables(self):
         '''Unmask variables from the NetCDF format and create a dataframe'''
         variables_dic = {}
-        for var in list(self.argo.variables.keys())[:52]:
+        #for var in list(self.argo.variables.keys())[:52]:
+        for var in ["PLATFORM_NUMBER", "LATITUDE", "LONGITUDE", "PRES", "PRES_ADJUSTED", "TEMP", "TEMP_ADJUSTED",
+                     "PSAL", "PSAL_ADJUSTED", "PROJECT_NAME"]:
             '''
             ['HISTORY_INSTITUTION', 'HISTORY_STEP', 'HISTORY_SOFTWARE', 'HISTORY_SOFTWARE_RELEASE', 'HISTORY_REFERENCE',
             'HISTORY_DATE', 'HISTORY_ACTION', 'HISTORY_PARAMETER', 'HISTORY_START_PRES', 'HISTORY_STOP_PRES', 
             'HISTORY_PREVIOUS_VALUE', 'HISTORY_QCTEST'] (argo.variables.key()[52:]) are empty so we should not bother with them.
+            Note: for 2011-12-02, 2011-12-12, 2011-12-22 this will fail. Simply replace the line above with "for var in list(self.argo.variables.keys())[:48]:"
             '''
             if len(self.argo.variables[var][:]) <= 16:
                 # Deals with the first variables which have a single information in them e.g. ['DATA_TYPE', 'FORMAT_VERSION', 'HANDBOOK_VERSION', 'REFERENCE_DATE_TIME', 'DATE_CREATION', 'DATE_UPDATE']
@@ -91,21 +94,26 @@ class argo_manipulation:
         latitude_limits = (self.argo_df["LATITUDE"] > 38) & (self.argo_df["LATITUDE"] < 59)
         longitude_limits = (self.argo_df["LONGITUDE"] > -70) & (self.argo_df["LONGITUDE"] < -35)
         self.argo_df = (self.argo_df[latitude_limits & longitude_limits]
-                   [["CYCLE_NUMBER", "PLATFORM_NUMBER", "LATITUDE", "LONGITUDE", "PRES", "PRES_ADJUSTED",
-                     "TEMP", "TEMP_ADJUSTED",
+                   [["PLATFORM_NUMBER", "LATITUDE", "LONGITUDE", "PRES", "PRES_ADJUSTED", "TEMP", "TEMP_ADJUSTED",
                      "PSAL", "PSAL_ADJUSTED", "PROJECT_NAME"]]
                    .rename(columns={"PLATFORM_NUMBER": "floatid", "LATITUDE": "latitude", "LONGITUDE": "longitude",
                                     "PROJECT_NAME": "data_source"})
                    )
 
         # Create date column based on file name
-        file_date = self.fdate.split("_")[0]
-        self.argo_df["date"] = file_date
-        self.argo_df["data_date"] = pd.to_datetime(self.argo_df["date"])
+        #file_date = self.fdate.split("_")[0]
+        #self.argo_df["date"] = file_date
+        #self.argo_df["data_date"] = pd.to_datetime(self.argo_df["date"])
 
     def unnest_param(self):
         '''Parameters are list of all measures taken in a cycle. We need to unnest the data to get a single value per row.
         By default, NaN values are stored as 99999.000 so we are dropping these as they indicate no measure was taken.'''
+
+        # Create date column based on file name
+        file_date = self.fdate.split("_")[0]
+        self.argo_df["date"] = file_date
+        self.argo_df["data_date"] = pd.to_datetime(self.argo_df["date"])
+
         to_unnest = ['PRES', 'PRES_ADJUSTED', 'PSAL', 'PSAL_ADJUSTED', 'TEMP', 'TEMP_ADJUSTED']
 
         unnested_argo = unnesting(self.argo_df, to_unnest)
@@ -128,8 +136,9 @@ class argo_manipulation:
     def manipulation_pipeline(self):
         self.unmask_variables()
         self.select_columns()
-        self.unnest_param()
-        self.depth_bins()
+        if len(self.argo_df) >= 1:
+            self.unnest_param()
+            self.depth_bins()
 
 def download_files():
     '''For each file in the years we are interested in, download file to local folder.'''
@@ -157,6 +166,7 @@ def download_files():
 
 def process_files():
     '''For each file in the local folder, run pipeline.'''
+    import traceback, sys
     directory = r'C:\Users\Kik\Documents\GitHub\argo_ocean_data_analysis\helper'
     for daily_file in os.listdir(directory):
         if daily_file.endswith(".nc"):
@@ -165,10 +175,15 @@ def process_files():
                 try:
                     myobject = argo_manipulation(fname=daily_file, fdate=daily_file)
                     myobject.manipulation_pipeline()
-                    insert_table("ocean_data", myobject.argo_df)
-                    print(f"Inserted {daily_file} into ocean_data")
+                    if len(myobject.argo_df) > 0:
+                        insert_table("ocean_data", myobject.argo_df)
+                        print(f"Inserted {daily_file} into ocean_data")
+                    else:
+                        print(f"No data in {daily_file} - not inserted in db")
                     success = True
-                except:
+
+                except Exception as e:
+                    traceback.print_exc(file=sys.stdout)
                     print(f"{daily_file} not written to db")
                     time.sleep(1)
         else:
