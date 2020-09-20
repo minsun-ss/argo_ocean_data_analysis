@@ -5,4 +5,5 @@ venv/
 .idea/
 notebooks/argo
 helper/argo_daily_file
+/helper/argo/
 /notebooks/.ipynb_checkpoints/
