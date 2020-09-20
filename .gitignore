@@ -1,5 +1,3 @@
-
-docs/SIADS591 - Argo Ocean Data Analysis - sungsh_claicarl - SpringSummer 2020.docx
 docs/draft_proposal.docx
 venv/
 .idea/
@@ -7,3 +5,4 @@ notebooks/argo
 helper/argo_daily_file
 /helper/argo/
 /notebooks/.ipynb_checkpoints/
+/.ipynb_checkpoints/

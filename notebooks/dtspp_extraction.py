@@ -7,6 +7,7 @@ import tarfile
 import shutil
 from shapely.geometry import shape, Point
 import shapefile
+import time
 
 def get_data(year):
     # extracts the tarzips from ftp for a specific year and dumps them into the data folder
@@ -38,12 +39,13 @@ def extract_to_folder(location):
 
     # right now only unzips 1 file at a time
     try:
-        for i in file_list[38:39]:
+        for i in file_list[2:]:
             print(i)
             gtspp = tarfile.open(f'../data/gtspp/{i}')
             gtspp.extractall(location)
             'Checking the contents of the folder'
             find_gulf_data(location)
+            time.sleep(60)
             'Deleting contents'
             delete_folder_contents(f'{location}/atlantic')
         print('Done.')
@@ -69,43 +71,48 @@ def find_gulf_data(location):
         # first check to see if the point is within the area
         array_lat, array_long = data.variables['latitude'][:], data.variables['longitude'][:]
         lat, long = data.variables['latitude'][:][0], data.variables['longitude'][:][0]
-        print(lat, long)
+        # print(lat, long)
 
         point = Point(long, lat)
         if gulf.contains(point):
-            position_quality = data.variables['position_quality_flag'][:]
-            position_quality = position_quality[position_quality.mask == False].data[0]
-            station_id = data.variables['gtspp_station_id'][:]
-            station_id = station_id[station_id.mask == False].data[0]
-            measure_time = data.variables['time'][:]
-            measure_time = measure_time[measure_time.mask == False].data[0][0]
-            measure_time_quality = data.variables['time_quality_flag'][:]
-            measure_time_quality = measure_time_quality[measure_time_quality.mask == False].data[0]
+            try:
+                position_quality = data.variables['position_quality_flag'][:]
+                position_quality = position_quality[position_quality.mask == False].data[0]
+                station_id = data.variables['gtspp_station_id'][:]
+                station_id = station_id[station_id.mask == False].data[0]
+                measure_time = data.variables['time'][:]
+                measure_time = measure_time[measure_time.mask == False].data[0][0]
+                measure_time_quality = data.variables['time_quality_flag'][:]
+                measure_time_quality = measure_time_quality[measure_time_quality.mask == False].data[0]
 
-            salinity = data.variables['salinity'][:]
-            salinity = salinity[salinity.mask == False].data.flatten(order='C')
-            salinity_quality = data.variables['salinity_quality_flag'][:]
-            salinity_quality = salinity_quality[salinity_quality.mask == False].data.flatten()
-            depth = data.variables['z'][:]
-            depth = depth[depth.mask == False].data.flatten()
-            depth_quality = data.variables['z_variable_quality_flag'][:]
-            depth_quality = depth_quality[depth_quality.mask == False].data.flatten()
-            temperature = data.variables['temperature'][:]
-            temperature = temperature[temperature.mask == False].data.flatten()
-            temperature_quality = data.variables['temperature_quality_flag'][:]
-            temperature_quality = temperature_quality[temperature_quality.mask == False].data.flatten()
+                salinity = data.variables['salinity'][:]
+                salinity = salinity[salinity.mask == False].data.flatten(order='C')
+                salinity_quality = data.variables['salinity_quality_flag'][:]
+                salinity_quality = salinity_quality[salinity_quality.mask == False].data.flatten()
+                depth = data.variables['z'][:]
+                depth = depth[depth.mask == False].data.flatten()
+                depth_quality = data.variables['z_variable_quality_flag'][:]
+                depth_quality = depth_quality[depth_quality.mask == False].data.flatten()
+                temperature = data.variables['temperature'][:]
+                temperature = temperature[temperature.mask == False].data.flatten()
+                temperature_quality = data.variables['temperature_quality_flag'][:]
+                temperature_quality = temperature_quality[temperature_quality.mask == False].data.flatten()
 
-            data_single_line = pd.DataFrame([long, lat, position_quality, station_id, measure_time, measure_time_quality]).transpose()
-            data_single_line.columns = ['longitude', 'latitude', 'position_quality', 'station_id', 'measure_time',
-                                        'measure_time_quality']
-            data_multiple_value = pd.DataFrame(
-                list(zip(salinity, salinity_quality, depth, depth_quality, temperature, temperature_quality)))
-            data_multiple_value.columns = ['salinity', 'salinity_quality', 'depth', 'depth_quality', 'temperature',
-                                           'temperature_quality']
-            data_single_line['merge'], data_multiple_value['merge'] = 0, 0
-            final = data_single_line.merge(data_multiple_value, how='inner', on='merge')
+                data_single_line = pd.DataFrame([long, lat, position_quality, station_id, measure_time, measure_time_quality]).transpose()
+                data_single_line.columns = ['longitude', 'latitude', 'position_quality', 'station_id', 'measure_time',
+                                            'measure_time_quality']
+                data_multiple_value = pd.DataFrame(
+                    list(zip(salinity, salinity_quality, depth, depth_quality, temperature, temperature_quality)))
+                data_multiple_value.columns = ['salinity', 'salinity_quality', 'depth', 'depth_quality', 'temperature',
+                                               'temperature_quality']
+                data_single_line['merge'], data_multiple_value['merge'] = 0, 0
+                final = data_single_line.merge(data_multiple_value, how='inner', on='merge')
 
-            return final
+                final.to_csv('../data/gtspp.csv', mode='a+', header=False)
+            except:
+                data.close()
+                continue
+        data.close()
 
 def delete_folder_contents(location):
     # to remove files
