@@ -26,3 +26,35 @@ ON OCEAN_DATA (data_date);
 -- If needed: change column type
 ALTER TABLE ocean_data
 ALTER COLUMN depth TYPE DECIMAL;
+
+-- Fish data table
+CREATE TABLE fish_data (
+id SERIAL NOT NULL,
+date date NOT NULL,
+station int,
+longitude decimal (30,10),
+latitude decimal (30,10),
+depth real,
+fish_type varchar(50),
+fish_count real,
+region varchar(20),
+PRIMARY KEY (id)
+);
+
+-- gtspp intermediary table
+CREATE TABLE gtspp (
+id SERIAL NOT NULL,
+longitude decimal (30,10),
+latitude decimal (30,10),
+position_quality int,
+station_id int,
+measure_time timestamp,
+measure_time_quality int,
+salinity real,
+salinity_quality int,
+depth real,
+depth_quality int,
+temperature real,
+temperature_quality int,
+PRIMARY KEY (id)
+);

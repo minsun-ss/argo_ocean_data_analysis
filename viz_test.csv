@@ -1,0 +1,12 @@
+year,fish_sum,fish_count,fish_type,temperature_sum,temperature_count,salinity_sum,salinity_count
+2009,100,10,arctic_cod,150,2,160,3
+2010,200,10,arctic_cod,250,2,260,3
+2011,300,10,arctic_cod,350,2,360,3
+2012,400,10,arctic_cod,450,3,460,3
+2013,500,10,arctic_cod,550,4,560,3
+2014,600,10,arctic_cod,650,5,660,3
+2015,700,10,arctic_cod,750,6,760,3
+2016,800,10,arctic_cod,850,7,860,3
+2017,900,10,arctic_cod,950,8,960,3
+2018,1000,10,arctic_cod,1050,9,1060,3
+2019,1100,10,arctic_cod,1150,10,1160,3

@@ -68,9 +68,16 @@ def run_query(sql=None):
 
 def insert_full_replace(table_name=None, df=None):
     'For when you need to insert and replace on collision.'
+    for index, val in df.iterrows():
+        col_values = [f'`{i}`' for i in df.columns.tolist()]
+        val_values = [db._val_format(i) for i in val.values]
+
+        replace_statement = [i[0] + '=' + i[1] for i in list(zip(col_values, val_values))]
+
+        query = f"INSERT INTO {table_name} ({','.join(col_values)}) VALUES ({','.join(val_values)})) ON DUPLICATE REPLACE ({','.join(replace_statement)})"
 
 
-    pass
+
 
 def insert_table(table_name=None, df=None, if_exists='append'):
     # For when you need to insert an entire table and just want to append and call it a day.
