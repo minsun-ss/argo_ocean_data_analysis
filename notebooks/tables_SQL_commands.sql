@@ -58,3 +58,8 @@ temperature real,
 temperature_quality int,
 PRIMARY KEY (id)
 );
+
+
+-- Select sample data to map points --
+SELECT DISTINCT(ROUND(latitude, 1), ROUND(longitude, 1))
+FROM (SELECT * from ocean_data TABLESAMPLE SYSTEM (10)) as sample;
