@@ -10,4 +10,4 @@ dash-core-components==1.10.2
 plotly==4.10.0
 sqlalchemy==1.3.13
 shapely==1.7.1
-
+gunicorn==19.9.0

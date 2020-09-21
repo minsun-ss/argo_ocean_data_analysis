@@ -8,6 +8,7 @@ import shutil
 from shapely.geometry import shape, Point
 import shapefile
 import time
+from helper import db
 
 def get_data(year):
     # extracts the tarzips from ftp for a specific year and dumps them into the data folder
@@ -39,7 +40,7 @@ def extract_to_folder(location):
 
     # right now only unzips 1 file at a time
     try:
-        for i in file_list[2:]:
+        for i in file_list:
             print(i)
             gtspp = tarfile.open(f'../data/gtspp/{i}')
             gtspp.extractall(location)
@@ -119,10 +120,44 @@ def delete_folder_contents(location):
     # location is usually '../data/gtspp/atlantic'
     shutil.rmtree(location)
 
-def run_process():
-    for i in range(2011, 2019):
-        # grabbing data
-        get_data(i)
+def database_dump():
+    # takes cleaned files from the filtering and dumps them to database
+    csv_folder_location = '../data/gtspp/csv_results'
+    file_list = os.listdir(csv_folder_location)
 
-print(extract_to_folder('../data/gtspp'))
+    # opens each file, appends a header, cleans up miscellaneous columns, pushes to db
+    for i in file_list[1:]:
+        print(i)
+        df = pd.read_csv(f'{csv_folder_location}/{i}', header=None)
+        GTSSP_COL = ['index', 'longitude', 'latitude', 'position_quality', 'station_id', 'measure_time',
+                     'measure_time_quality', 'merge', 'salinity', 'salinity_quality', 'depth', 'depth_quality',
+                     'temperature', 'temperature_quality']
+        df.columns = GTSSP_COL
+
+        def to_time(days):
+            try:
+                # 1970 is 25569 in number of days... this field appears to be structured
+                # to be used in excel. :(
+                new_time = (days - 25569)
+                return pd.Timestamp(new_time, unit='d')
+            except:
+                return np.nan
+
+        df['measure_time'] = df['measure_time'].apply(to_time)
+        df.drop(columns=['index', 'merge'], inplace=True)
+
+        try:
+            db.insert_table(table_name='gtspp', df=df)
+        except:
+            raise
+
+def run_process():
+    # collects data from ftp
+    for i in range(2011, 2019):
+        get_data(i)
+    # unpacks data, filters for data in the gulf, outputs to csv
+    extract_to_folder('../data/gtspp')
+
+
+# print(extract_to_folder('../data/gtspp'))
 
