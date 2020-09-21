@@ -2,6 +2,7 @@
 For use in the SIADS591 Milestone Project
 
 Remaining to do:
+- ~~get a successful deploy set up with heroku~~
 - insert all gtspp data to gtspp table
 - insert cleaned gtspp subset to ocean_data table
 - insert oceans_fisheries data to ocean_data table
