@@ -211,7 +211,6 @@ def run_process():
         get_data(i)
     # unpacks data, filters for data in the gulf, outputs to csv
     extract_to_folder('../data/gtspp')
+    raw_database_dump()
+    cleaned_database_dump()
 
-# run_process()
-# print(extract_to_folder('../data/gtspp'))
-cleaned_database_dump()
