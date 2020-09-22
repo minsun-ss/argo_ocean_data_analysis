@@ -40,20 +40,20 @@ def extract_to_folder(location):
 
     # right now only unzips 1 file at a time
     try:
-        for i in file_list:
+        for i in file_list[-2:]:
             print(i)
             gtspp = tarfile.open(f'../data/gtspp/{i}')
             gtspp.extractall(location)
-            'Checking the contents of the folder'
-            find_gulf_data(location)
+            print('Checking the contents of the folder')
+            find_gulf_data(location, i)
             time.sleep(60)
-            'Deleting contents'
+            print('Deleting contents')
             delete_folder_contents(f'{location}/atlantic')
         print('Done.')
     except:
         raise
 
-def find_gulf_data(location):
+def find_gulf_data(location, filename):
     # start opening up the nc files and finding point data. Returns a dataframe with matching points
     # and accompanying data, uncleaned.
     r = shapefile.Reader('../assets/shapefile/iho.shap')
@@ -75,6 +75,7 @@ def find_gulf_data(location):
         # print(lat, long)
 
         point = Point(long, lat)
+        print(point)
         if gulf.contains(point):
             try:
                 position_quality = data.variables['position_quality_flag'][:]
@@ -109,11 +110,12 @@ def find_gulf_data(location):
                 data_single_line['merge'], data_multiple_value['merge'] = 0, 0
                 final = data_single_line.merge(data_multiple_value, how='inner', on='merge')
 
-                final.to_csv('../data/gtspp.csv', mode='a+', header=False)
+                final.to_csv(f'../data/{filename}.csv', mode='a+', header=False)
             except:
                 data.close()
                 continue
         data.close()
+    time.sleep(60)
 
 def delete_folder_contents(location):
     # to remove files
@@ -126,7 +128,7 @@ def database_dump():
     file_list = os.listdir(csv_folder_location)
 
     # opens each file, appends a header, cleans up miscellaneous columns, pushes to db
-    for i in file_list[1:]:
+    for i in file_list[2:]:
         print(i)
         df = pd.read_csv(f'{csv_folder_location}/{i}', header=None)
         GTSSP_COL = ['index', 'longitude', 'latitude', 'position_quality', 'station_id', 'measure_time',
@@ -153,11 +155,11 @@ def database_dump():
 
 def run_process():
     # collects data from ftp
-    for i in range(2011, 2019):
+    for i in range(2019, 2020):
         get_data(i)
     # unpacks data, filters for data in the gulf, outputs to csv
     extract_to_folder('../data/gtspp')
 
-
+# run_process()
 # print(extract_to_folder('../data/gtspp'))
-
+database_dump()
