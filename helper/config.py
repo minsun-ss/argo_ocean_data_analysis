@@ -1,4 +1,5 @@
 # store our keys here and the like
+# it's here and not in our OS environ so Claire and I can not suffer too much
 
 MAPBOX_TOKEN = 'pk.eyJ1IjoibWluc3VuIiwiYSI6ImNqdjRqNGF3ZjJyaDYzeXMwcWpzOTE5ODkifQ.9DOLjPum-SBZ7kSUP264eQ'
 

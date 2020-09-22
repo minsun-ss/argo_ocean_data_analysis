@@ -11,6 +11,9 @@ from sqlalchemy import create_engine
 
 # sclog.logging_to_file('logging.txt')
 
+# A general purpose handler for connecting to postgresql dbs and doing some data manipulation with it.
+# Let it be known that Sharon thought this was way more painful than writing the mysql handler in pymysql.
+
 def get_db_instances():
     'Gets db instance params from RDS via boto3 client'
     try:
@@ -66,18 +69,22 @@ def run_query(sql=None):
     finally:
         conn.close()
 
-def insert_full_replace(table_name=None, df=None):
-    'For when you need to insert and replace on collision.'
+def upsert(table_name=None, df=None, keys=None):
+    # 'For when you need to insert and replace on collision.' Rather unfortunately you also need to know
+    # the conflict keys for this to work. Sucks to be using postgres sometimes!
     for index, val in df.iterrows():
-        col_values = [f'`{i}`' for i in df.columns.tolist()]
-        val_values = [db._val_format(i) for i in val.values]
+        col_values = [f'{i}' for i in df.columns.tolist()]
+        val_values = [_val_format(i) for i in val.values]
+        key_values = ','.join(keys)
 
         replace_statement = [i[0] + '=' + i[1] for i in list(zip(col_values, val_values))]
 
-        query = f"INSERT INTO {table_name} ({','.join(col_values)}) VALUES ({','.join(val_values)})) ON DUPLICATE REPLACE ({','.join(replace_statement)})"
-
-
-
+        query = f"""INSERT INTO {table_name} ({','.join(col_values)}) VALUES ({','.join(val_values)}) ON CONFLICT ({key_values}) DO UPDATE SET {','.join(replace_statement)}"""
+        print(query)
+        try:
+            run_query(query)
+        except:
+            raise
 
 def insert_table(table_name=None, df=None, if_exists='append'):
     # For when you need to insert an entire table and just want to append and call it a day.
