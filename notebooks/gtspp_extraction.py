@@ -110,7 +110,7 @@ def find_gulf_data(location, filename):
                 data_single_line['merge'], data_multiple_value['merge'] = 0, 0
                 final = data_single_line.merge(data_multiple_value, how='inner', on='merge')
 
-                final.to_csv(f'../data/{filename}.csv', mode='a+', header=False)
+                final.to_csv(f'../data/gtspp/csv_results/{filename}.csv', mode='a+', header=False)
             except:
                 data.close()
                 continue
@@ -122,8 +122,9 @@ def delete_folder_contents(location):
     # location is usually '../data/gtspp/atlantic'
     shutil.rmtree(location)
 
-def database_dump():
-    # takes cleaned files from the filtering and dumps them to database
+def raw_database_dump():
+    # takes cleaned files from the filtering and dumps raw to database for possible future use (if we need to
+    # redo a calculation
     csv_folder_location = '../data/gtspp/csv_results'
     file_list = os.listdir(csv_folder_location)
 
@@ -153,6 +154,57 @@ def database_dump():
         except:
             raise
 
+def cleaned_database_dump():
+    # takes cleaned files from the filtering and dumps them to database
+    csv_folder_location = '../data/gtspp/csv_results'
+    file_list = os.listdir(csv_folder_location)
+
+    # opens each file, appends a header, cleans up miscellaneous columns, pushes to db
+    for i in file_list[1:]:
+        print(i)
+        df = pd.read_csv(f'{csv_folder_location}/{i}', header=None)
+        GTSSP_COL = ['index', 'longitude', 'latitude', 'position_quality', 'station_id', 'measure_time',
+                     'measure_time_quality', 'merge', 'salinity', 'salinity_quality', 'depth', 'depth_quality',
+                     'temperature', 'temperature_quality']
+        df.columns = GTSSP_COL
+
+        def to_time(days):
+            try:
+                # 1970 is 25569 in number of days... this field appears to be structured
+                # to be used in excel. :(
+                new_time = (days - 25569)
+                return pd.Timestamp(new_time, unit='d')
+            except:
+                return np.nan
+
+        df['measure_time'] = df['measure_time'].apply(to_time)
+        df.drop(columns=['index', 'merge'], inplace=True)
+
+        # so measurements of quality are done from 0 to 9, with 1 being good, 0 being no check, 2-3 being probably good/bad,
+        # 4 being bad, and everything else just please ignore - so let's just filter everything for 1
+
+        GOOD_DATA = (df['position_quality'] == 1) & (df['measure_time_quality'] == 1) & (
+                    df['salinity_quality'] == 1) & (df['depth_quality'] == 1) & (df['temperature_quality'] == 1)
+        good_data_df = df[GOOD_DATA].copy()
+
+        DROP_COLUMNS = ['position_quality', 'measure_time_quality', 'salinity_quality', 'depth_quality',
+                        'temperature_quality']
+        good_data_df.drop(columns=DROP_COLUMNS, inplace=True)
+        cut_bins = [i for i in range(0, 1000, 100)]
+        good_data_df['depth_bin'] = pd.cut(df['depth'], cut_bins)
+        good_data_df['depth_bin'] = good_data_df['depth_bin'].astype('str')
+        grouped_df = good_data_df.groupby(['measure_time', 'latitude', 'longitude', 'station_id', 'depth_bin'])[
+            ['salinity', 'temperature']].mean().reset_index()
+
+        RENAME_COLUMNS = {'measure_time': 'data_date', 'station_id': 'floatid', 'depth_bin': 'depth'}
+        grouped_df.rename(columns=RENAME_COLUMNS, inplace=True)
+        grouped_df['data_source'] = 'GTSPP'
+
+        try:
+            db.insert_table(table_name='ocean_data', df=grouped_df)
+        except:
+            raise
+
 def run_process():
     # collects data from ftp
     for i in range(2019, 2020):
@@ -162,4 +214,4 @@ def run_process():
 
 # run_process()
 # print(extract_to_folder('../data/gtspp'))
-database_dump()
+cleaned_database_dump()
