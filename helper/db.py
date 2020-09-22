@@ -80,7 +80,6 @@ def upsert(table_name=None, df=None, keys=None):
         replace_statement = [i[0] + '=' + i[1] for i in list(zip(col_values, val_values))]
 
         query = f"""INSERT INTO {table_name} ({','.join(col_values)}) VALUES ({','.join(val_values)}) ON CONFLICT ({key_values}) DO UPDATE SET {','.join(replace_statement)}"""
-        print(query)
         try:
             run_query(query)
         except:
