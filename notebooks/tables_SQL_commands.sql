@@ -27,6 +27,15 @@ ON OCEAN_DATA (data_date);
 ALTER TABLE ocean_data
 ALTER COLUMN depth TYPE DECIMAL;
 
+-- alter a flag
+ALTER TABLE ocean_data
+ADD COLUMN in_gulf INTEGER;
+
+-- update a flag
+UPDATE ocean_data
+SET in_gulf=1
+WHERE data_source='GTSPP';
+
 -- Fish data table
 CREATE TABLE fish_data (
 id SERIAL NOT NULL,
@@ -58,7 +67,6 @@ temperature real,
 temperature_quality int,
 PRIMARY KEY (id)
 );
-
 
 -- Select sample data to map points --
 SELECT DISTINCT(ROUND(latitude, 1), ROUND(longitude, 1))
