@@ -11,14 +11,15 @@ def extract_raw():
     df = pd.DataFrame()
     for i in [i for i in zip.namelist() if 'csv' in i]:
         datafile = pd.read_csv(zip.open(i), encoding='cp437')
+        datafile.columns = ['station_id', 'latitude', 'longitude', 'measure_time', 'depth', 'temperature', 'salinity']
+        datafile['measure_time'] = pd.to_datetime(datafile['measure_time'])
+        insert_raw(datafile)
         df = pd.concat([df, datafile])
-    df.columns = ['station', 'latitude', 'longitude', 'measure_time', 'depth', 'temperature', 'salinity']
-    df['measure_time'] = pd.to_datetime(df['measure_time'])
-
     return df
 
 def insert_raw(df):
     try:
+        print(df.shape)
         db.insert_table(table_name='dfo_quebec', df=df)
     except:
         raise
@@ -49,6 +50,6 @@ def insert_cleaned(df):
 
 def run_process():
     df = clean_data(extract_raw())
-    insert_cleaned(df)
+    # insert_cleaned(df)
 
 run_process()
