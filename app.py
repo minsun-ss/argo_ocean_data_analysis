@@ -28,6 +28,11 @@ def build_depth_dropdown():
     dropdown_labels = [{'label': i, 'value': i} for i in sorted([i for i in param_data.depth_range.unique()])]
     return dropdown_labels
 
+def build_graph(id_name):
+    return html.Div([dcc.Graph(id=id_name)], className='one-third column',
+                    style={'marginBottom': 25, 'marginTop': 25}
+                    ),
+
 # Note that static assets such as html and the like must be served from the asset folders because Dash is pain
 app = dash.Dash(__name__)
 app.title = 'Ocean Temperature and Salinity in the Estuary and Gulf of St. Lawrence'
@@ -38,34 +43,43 @@ def serve_layout():
     fish_name = build_fish_dropdown()
     param_name = build_param_dropdown()
     depth_interval = build_depth_dropdown()
-
-    return html.Div(children=[
+    return html.Div(
+        children=[
         html.Div([html.H2("Estuary and Gulf of St. Lawrence: Temperatures, Salinity, and Fish Populations")],
-                 id='title', title='atitle')
-        , html.Div(children=[html.Div(children=[html.H4('Options'),
-                                                dcc.Dropdown(id='fish_dropdown', options=fish_name, value='sand_lances'),
-                                                html.H4('Parameter'),
-                                                dcc.Dropdown(id='param_dropdown', options=param_name, value='temperature'),
-                                                html.H4('Depth'),
-                                                dcc.Dropdown(id='depth_dropdown', options=depth_interval, value='(0, 100]')
-                                                ]
-                                      , className='two columns')])
-        , html.Div(children=[dcc.Graph(id='fish',config={'autosizable': True, 'displaylogo': False, 'displayModeBar': False}
-                             , style={'width': '100%'}),
-                             ],  className='ten columns')
-        , html.Div(children=[dcc.Slider(id='year-slider', min=fish_data.date.min(),
-            max=fish_data.date.max(),
-            value=fish_data.date.min(),
-            marks={str(year): str(year) for year in fish_data.date.unique()},
-            step=None)], style={'marginBottom': 25, 'marginTop': 25, 'width':'90%'}, className='ten columns')
-        , html.Div(children=[
-            html.Div(html.H2(), className='two columns'),
-            html.Div(className='ten columns')])
-        #, html.Iframe(id='map', src=app.get_asset_url('test.html'), width='100%', height='600')
-])
-app.layout = serve_layout
-# app.config['suppress_callback_exceptions'] = True
+                 id='title', title='atitle'),
+        html.Div(children=[
+            html.Div(children=[html.H4('Options'),
+                               dcc.Dropdown(id='fish_dropdown', options=fish_name, value='sand_lances'),
+                               html.H4('Parameter'),
+                               dcc.Dropdown(id='param_dropdown', options=param_name, value='temperature'),
+                               html.H4('Depth'),
+                               dcc.Dropdown(id='depth_dropdown', options=depth_interval, value='(0, 100]')],
+                     className='two columns'),
+            html.Div(dcc.Graph(id='fish',config={'autosizable': True, 'displaylogo': False,
+                                                 'displayModeBar': False}, style={'width': '100%'}),
+                     className='ten columns')]),
+        html.Div(children=[
+            html.Div(html.H2('-'), className='two columns'),
+            html.Div(children=[dcc.RangeSlider(id='year-slider', min=2009, max=2018,
+                           value=[2009, 2018], step=1)],
+                     style={'marginBottom': 25, 'marginTop': 25}, className='ten columns')]),
+        html.Div(children=[
+            html.Div(dcc.Graph(id='temperature_graph'), className='one-third column'),
+            html.Div(dcc.Graph(id='salinity_graph',), className='one-third column'),
+            html.Div(dcc.Graph(id='fish_graph'), className='one-third column')
+        ], className='twelve columns')])
 
+app.layout = serve_layout
+
+def get_color(color_value, param_value):
+    if param_value not in ['temperature', 'salinity']:
+        return (color_value+5)/8*255
+    elif param_value == 'temperature':
+        return (color_value-3)/8*255
+    elif param_value == 'salinity':
+        return (color_value-30)/6*255
+    else:
+        return 0
 
 # this is a simple callback function for when the dropdowns changes - you serve data to the input
 # and output. only 1 input can serve a change, but can serve to multiple outputs.
@@ -76,31 +90,22 @@ app.layout = serve_layout
        dash.dependencies.Input('depth_dropdown', 'value'),
        dash.dependencies.Input('year-slider', 'value')
        ])
-
 def update_figure(fish_value, param_value, depth_value, year_value):
     print(fish_value, param_value, depth_value, year_value)
 
-    color_value = param_data[(param_data.depth_range == depth_value)&(param_data.year == year_value)][param_value].item()
+    color_value = param_data[(param_data.depth_range == depth_value)&(param_data.year == year_value[0])][param_value].item()
     print(color_value)
-    if param_value not in ['temperature', 'salinity']:
-        b_value = (color_value+5)/8*255
-    elif param_value == 'temperature':
-        b_value = (color_value-3)/8*255
-    elif param_value == 'salinity':
-        b_value = (color_value-30)/6*255
-    else:
-        b_value = 0
+
     # Should always be in the RGB range 0-255
-    b_value = max(b_value, 0)
-    b_value = min(b_value, 255)
+    b_value = max(get_color(color_value, param_value), 0)
+    b_value = min(get_color(color_value, param_value), 255)
     col = f'rgb({b_value}, {b_value}, 255)'
-    print(col)
 
     return {
         'data': [
             go.Densitymapbox(
-                lat=fish_data[(fish_data[fish_value] > 0) & (fish_data.date == year_value)]['latitude'].tolist(),
-                lon=fish_data[(fish_data[fish_value] > 0) & (fish_data.date == year_value)]['longitude'].tolist(),
+                lat=fish_data[(fish_data[fish_value] > 0) & (fish_data.date == year_value[0])]['latitude'].tolist(),
+                lon=fish_data[(fish_data[fish_value] > 0) & (fish_data.date == year_value[0])]['longitude'].tolist(),
                 radius=10
             )
         ],
