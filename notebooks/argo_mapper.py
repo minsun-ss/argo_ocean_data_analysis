@@ -20,18 +20,20 @@ def update_argo_data():
         else:
             return 0
 
-    for i in range(2009, 2020):
+    for i in range(2010, 2020):
         print(i)
         sql=f"""
         SELECT id, latitude, longitude FROM ocean_data
-        WHERE EXTRACT(YEAR FROM data_date)={i} AND data_source='Argo Project' and in_gulf is NULL"""
+        WHERE EXTRACT(YEAR FROM data_date)={i} AND data_source='Argo Project'"""
 
         df = db.run_query(sql)
         df['in_gulf'] = df.apply(check_point, axis=1)
+        final_df = df[df['in_gulf']==1]
+        print(final_df.shape)
 
         # update data
         try:
-            db.upsert(table_name='ocean_data', df=df, keys=['id'])
+            db.upsert(table_name='ocean_data', df=final_df, keys=['id'])
         except:
             raise
 
