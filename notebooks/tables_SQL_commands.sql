@@ -68,6 +68,20 @@ temperature_quality int,
 PRIMARY KEY (id)
 );
 
+-- dfo_quebec raw table
+CREATE TABLE dfo_quebec (
+id SERIAL NOT NULL,
+longitude decimal (30,10),
+latitude decimal (30,10),
+station_id int,
+measure_time timestamp,
+salinity real,
+depth real,
+temperature real,
+PRIMARY KEY (id)
+);
+
+
 -- Select sample data to map points --
 SELECT DISTINCT(ROUND(latitude, 1), ROUND(longitude, 1))
 FROM (SELECT * from ocean_data TABLESAMPLE SYSTEM (10)) as sample;
