@@ -187,6 +187,20 @@ def cleaned_database_dump():
         except:
             raise
 
+def count_measurements():
+    file_list = [i for i in os.listdir('../data/gtspp') if 'tgz' in i]
+    count=0
+    # right now only unzips 1 file at a time
+    try:
+        for i in file_list:
+            gtspp = tarfile.open(f'../data/gtspp/{i}')
+            print(type(gtspp.getnames()))
+            count += len(gtspp.getnames())
+            print(i, count)
+        print('Done')
+    except:
+        raise
+
 def run_process():
     # collects data from ftp
     for i in range(2019, 2020):
@@ -196,4 +210,4 @@ def run_process():
     raw_database_dump()
     cleaned_database_dump()
 
-cleaned_database_dump()
+count_measurements()

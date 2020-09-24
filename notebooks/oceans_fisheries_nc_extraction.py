@@ -9,7 +9,7 @@ def extract_raw():
     zip = zipfile.ZipFile('../data/LTTMP_1980_2019.zip')
 
     df = pd.DataFrame()
-    for i in [i for i in zip.namelist() if 'csv' in i]:
+    for i in [i for i in zip.namelist() if 'csv' in i][4:]:
         datafile = pd.read_csv(zip.open(i), encoding='cp437')
         datafile.columns = ['station_id', 'latitude', 'longitude', 'measure_time', 'depth', 'temperature', 'salinity']
         datafile['measure_time'] = pd.to_datetime(datafile['measure_time'])
