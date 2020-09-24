@@ -87,13 +87,19 @@ app.layout = serve_layout
 
 def get_color(color_value, param_value):
     if param_value not in ['temperature', 'salinity']:
-        return (color_value+5)/8*255
+        b_value = (color_value+5)/8*255
     elif param_value == 'temperature':
-        return (color_value-3)/8*255
+        b_value = (color_value-3)/8*255
     elif param_value == 'salinity':
-        return (color_value-30)/6*255
+        b_value = (color_value-30)/6*255
     else:
-        return 0
+        b_value = 0
+
+    # b_value should always be in the RGB range 0-255
+    b_value = max(b_value, 0)
+    b_value = min(b_value, 255)
+
+    return f'rgb({b_value}, {b_value}, 255)'
 
 # this is a simple callback function for when the dropdowns changes - you serve data to the input
 # and output. only 1 input can serve a change, but can serve to multiple outputs.
@@ -110,10 +116,7 @@ def update_figure(fish_value, param_value, depth_value, year_value):
     color_value = param_data[(param_data.depth_range == depth_value)&(param_data.year == year_value)][param_value].item()
     print(color_value)
 
-    # Should always be in the RGB range 0-255
-    b_value = max(get_color(color_value, param_value), 0)
-    b_value = min(get_color(color_value, param_value), 255)
-    col = f'rgb({b_value}, {b_value}, 255)'
+    map_color = get_color(color_value, param_value)
 
     return {
         'data': [
@@ -127,7 +130,7 @@ def update_figure(fish_value, param_value, depth_value, year_value):
         'layout': go.Layout(autosize=True, hovermode='closest', height=600
                             , margin=dict(l=0, r=0, b=0, t=0, pad=0)
                             , mapbox = {'accesstoken': cfg.MAPBOX_TOKEN, 'bearing': 0, 'layers':
-                [dict(sourcetype='geojson', source=gulf_geojson, type='fill', color=col)]
+                [dict(sourcetype='geojson', source=gulf_geojson, type='fill', color=map_color)]
                     , 'center': {'lat': 48.3, 'lon': -64.5}, 'zoom': 5
                     , 'style': 'mapbox://styles/mapbox/light-v9'
                     }
