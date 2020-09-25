@@ -12,13 +12,14 @@ gulf_geojson = json.load(open('assets/iho.json'))
 # fish_data = db.run_query()
 fish_data = pd.read_csv('test.csv') # dummy query to avoid hitting up RDS for testing
 fish_data.date = pd.to_datetime(fish_data.date).dt.year # will need to import date as year
+fish_data['total'] = fish_data.iloc[:, 5:-1].sum(axis=1)
 param_data = pd.read_csv('sample_param_data.csv') # same as above, code in jupyter notebook - will add it to this file later.
 
 # avg_temperature = [{'label': str(i), 'value': str(i)} for i in param_data.temperature]
 # avg_salinity = [{'label': i, 'value': i} for i in param_data.salinity]
 
 def build_fish_dropdown():
-    not_fish = ['date', 'station', 'longitude', 'latitude', 'depth']
+    not_fish = ['date', 'station', 'longitude', 'latitude', 'depth', 'region']
     dropdown_labels = [{'label': i, 'value': i} for i in fish_data.columns if i not in not_fish]
     return dropdown_labels
 
@@ -43,13 +44,6 @@ app.title = 'Ocean Temperature and Salinity in the Estuary and Gulf of St. Lawre
 server = app.server
 
 
-def evolution():
-    fig = go.Figure()
-    df = param_data.groupby('year')[['temperature']].mean().reset_index()
-    fig.add_trace(go.Scatter(x=df.year, y=df.temperature))
-    fig.update_layout(height=600, width=800, title_text="Side By Side Subplots")
-    return fig
-
 # Serve layout separately in order for page to always load this layout on default
 def serve_layout():
     fish_name = build_fish_dropdown()
@@ -57,29 +51,37 @@ def serve_layout():
     depth_interval = build_depth_dropdown()
     return html.Div(
         children=[
-        html.Div([html.H2("Estuary and Gulf of St. Lawrence: Temperatures, Salinity, and Fish Populations")],
-                 id='title', title='atitle'),
+        html.Div(children=[html.H2("Estuary and Gulf of St. Lawrence: Temperatures, Salinity, and Fish Populations"),
+                           html.P('This dashboard presents the evolution of Pelagic fish populations in the Gulf and Estuary of Saint Lawrence, Canada.'
+                                  'Evolution of temperature and salinity is presented as the average temperature per year, considering the month of April to September only'
+                                  'as the fish migrate to warmer waters in the winter. Other indicators that can have an impact on population, '
+                                  'such as fishing and sailing activity, are not represented on this dashboard. Hence, the correlations presented on this map cannot be considered'
+                                  'a direct cause for fish population evolution.'),
+                           ],
+                 id='title', title='atitle', style={'marginBottom': 25}),
         html.Div(children=[
-            html.Div(children=[html.H4('Options'),
-                               dcc.Dropdown(id='fish_dropdown', options=fish_name, value='sand_lances'),
-                               html.H4('Parameter'),
-                               dcc.RadioItems(id='param_dropdown', options=param_name, value='temperature'),
-                               dcc.Graph(id='indicator'),
+            html.Div(children=[html.H4('Fish Population'),
+                               dcc.Dropdown(id='fish_dropdown', options=fish_name, value='total'),
+                               html.H4('Indicator'),
+                               dcc.Dropdown(id='param_dropdown', options=param_name, value='temperature'),
                                html.H4('Depth'),
-                               dcc.Dropdown(id='depth_dropdown', options=depth_interval, value='(0, 100]')],
+                               dcc.Dropdown(id='depth_dropdown', options=depth_interval, value='(0, 100]'),
+                               dcc.Graph(id='indicator'),
+                               ],
                      className='two columns'),
             html.Div(dcc.Graph(id='fish',config={'autosizable': True, 'displaylogo': False,
                                                  'displayModeBar': False}, style={'width': '100%'}),
                      className='ten columns')]),
         html.Div(children=[
             html.Div(html.H2('-'), className='two columns'),
-            html.Div(children=[dcc.Slider(id='year-slider', min=2009, max=2018,
+            html.Div(children=[html.Header('Select a year to display change on the map'),
+                               dcc.Slider(id='year-slider', min=2009, max=2018,
                                           value=2018, marks={year: str(year) for year in range(2009, 2019)},
                                           step=None)],
-                     style={'marginBottom': 25, 'marginTop': 25}, className='ten columns')]),
+                     style={'marginBottom': 25}, className='ten columns')]),
         html.Div(children=[
-            html.Div(dcc.Graph(id='temperature_graph', figure=evolution()), className='one-third column'),
-            html.Div(dcc.Graph(id='salinity_graph',), className='one-third column'),
+            html.Div(dcc.Graph(id='temperature_graph'), className='one-third column'),
+            html.Div(dcc.Graph(id='salinity_graph'), className='one-third column'),
             html.Div(dcc.Graph(id='fish_graph'), className='one-third column')
         ], className='twelve columns')])
 
@@ -145,43 +147,110 @@ def suffix_indicator(param_name):
     else:
         return "No such parameter"
 
+def correlation_score(fish_value, param_name, depth_value):
+    fish = fish_data[['date', fish_value]].groupby('date').sum().reset_index().rename(columns={'date': 'year'})
+    param = param_data[param_data.depth_range == depth_value][['year', param_name]]
+    df = param.merge(fish, on='year')
+    #return df[fish_value].corr(df[param_name])
+    return df[param_name].corr(df[fish_value])
+
 @app.callback(
     dash.dependencies.Output('indicator', 'figure')
-    , [dash.dependencies.Input('param_dropdown', 'value'),
+    , [dash.dependencies.Input('fish_dropdown', 'value'),
+       dash.dependencies.Input('param_dropdown', 'value'),
        dash.dependencies.Input('depth_dropdown', 'value'),
        dash.dependencies.Input('year-slider', 'value')
        ])
 
-def update_indicators(param_name, depth_value, year_value):
+def update_indicators(fish_value, param_name, depth_value, year_value):
     df = param_data[param_data.depth_range == depth_value][['year', param_name]]
     avg_param = df.loc[(df['year'] == year_value), param_name].item()
     baseline_2009 = df.loc[(df['year'] == 2009), param_name].item()
     prev_year = df[param_name].shift(1).loc[df['year'] == year_value].item()
     unit = suffix_indicator(param_name)
-    print(avg_param, baseline_2009, prev_year)
+    correlation = correlation_score(fish_value, param_name, depth_value)
+    print('correlation: ', correlation)
 
     return {
         'data': [
-            go.Indicator(number={'suffix': unit}, value=avg_param, align='left',
+            go.Indicator(number={'suffix': unit, 'font.size':30}, value=avg_param,
                          title={
-                             "text": f"Average {param_name}<br><span style='font-size:0.8em;color:gray'>May-September</span>"},
+                             "text": f"<span style='font-size:2.5em'>Average {param_name}</span>"},
                          domain={'row': 0, 'column': 0}
                          ),
             go.Indicator(mode="delta", value=avg_param,
                          title={
-                             "text": "<br><span style='font-size:0.8em;color:gray'>Since 2009</span><br><span style='font-size:0.8em;color:gray'></span>"},
+                             "text": "<br><span style='font-size:3em;color:gray'>Since 2009</span><br><span style='font-size:0.8em;color:gray'></span>"},
                          # Plotly does not have suffix settings for delta yet. https://github.com/plotly/plotly.js/issues/4824
-                         delta={'reference': baseline_2009}, domain={'row': 1, 'column': 0}
+                         delta={'reference': baseline_2009, "valueformat": ".2f", 'font.size':20}, domain={'row': 1, 'column': 0}
                          ),
             go.Indicator(mode="delta", value=avg_param,
                          title={
-                             "text": "<br><span style='font-size:0.8em;color:gray'>Since previous year</span><br><span style='font-size:0.8em;color:gray'></span>"},
-                         delta={'reference': prev_year},
+                             "text": "<br><span style='font-size:3em;color:gray'>Since previous year</span><br><span style='font-size:0.8em;color:gray'></span>"},
+                         delta={'reference': prev_year, "valueformat": ".2f", 'font.size':20},
                          domain={'row': 2, 'column': 0}
+                         ),
+            go.Indicator(number={"valueformat": ".2f", 'font.size':30}, value=correlation,
+                         title={
+                             "text": f"<span style='font-size:2.8em'>Correlation score <br></span>"
+                                     f"<br><span style='font-size:2em;color:gray'>with {fish_value} population</span>"},
+                         domain={'row': 4, 'column': 0}
                          )
         ],
 
-        'layout': go.Layout(grid={'rows': 3, 'columns': 1, 'pattern': "independent"})
+        'layout': go.Layout(grid={'rows': 5, 'columns': 1, 'pattern': "independent"})
+    }
+
+@app.callback(
+    dash.dependencies.Output('temperature_graph', 'figure')
+    , [dash.dependencies.Input('depth_dropdown', 'value')
+       ])
+def update_temperature(depth_value):
+    df = param_data[param_data.depth_range == depth_value][['year', 'temperature']]
+
+    return {
+        'data': [
+            go.Scatter(x=df.year, y=df.temperature)
+        ],
+
+        'layout': go.Layout(title=f"Average April-September Temperature Evolution - {depth_value}m")
+    }
+
+
+@app.callback(
+    dash.dependencies.Output('salinity_graph', 'figure')
+    , [dash.dependencies.Input('depth_dropdown', 'value')
+       ])
+def update_salinity(depth_value):
+    df = param_data[param_data.depth_range == depth_value][['year', 'salinity']]
+
+    return {
+        'data': [
+            go.Scatter(x=df.year, y=df.salinity)
+        ],
+
+        'layout': go.Layout(title=f"Average April-September Salinity Evolution - {depth_value}m")
+    }
+
+@app.callback(
+    dash.dependencies.Output('fish_graph', 'figure')
+    , [dash.dependencies.Input('fish_dropdown', 'value')
+       ])
+def update_fish_graph(fish_value):
+    df = fish_data[['date', fish_value]].groupby('date').sum().reset_index()
+    pop_2009 = df[fish_value].iloc[0]
+    pop_2018 = df[fish_value].iloc[-1]
+
+    return {
+        'data': [
+            go.Indicator(mode="delta", value=pop_2018,
+                         delta={'reference': pop_2009, 'relative': True, 'font.size': 28},
+                         #domain={'row': 2, 'column': 0}
+                         ),
+            go.Scatter(x=df.date, y=df[fish_value])
+        ],
+
+        'layout': go.Layout(title=f"{fish_value} Population Evolution")
     }
 
 
