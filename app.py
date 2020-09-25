@@ -3,20 +3,69 @@ import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objs as go
 import json
-# from helper import db
+from helper import db
 import pandas as pd
 from helper import config as cfg
 from pandas.api.types import CategoricalDtype
+
+
+def make_categorical(df):
+    '''Generates intervals of type '0-100' then map them to the depth column to make it categorical.'''
+    intervals = ["{}-{}".format(i * 100, (i + 1) * 100) for i in range(60)]
+
+    cat_type = CategoricalDtype(categories=intervals, ordered=True)
+    df["depth_range"] = df["depth_range"].astype(cat_type)
+    return df
+
+
+def param_data():
+    '''Return a dataframe with average temperature and salinity by depth and year,
+    temperature and salinity evolution compared to 2009 and year over year temperature and salinity evolution.
+    The SQL query filters outlier data (e.g. temperature below -2.5 or above 40 degrees celsius) and only takes values
+    for the months of April to September (2009-2018) since these are the months the fish live in the Estuary.'''
+
+    # The regex will remove brackets and parentheses from the depth column and avoid (0, 100], [0, 100) issues.
+    # Include 'AND in_gulf = 1' to the filter when the gstpp data is all added.
+    query = """
+    SELECT
+    extract(year from data_date) as year,
+    REGEXP_REPLACE(depth, '[\[\]\(\)]', '', 'g') as depth_range,
+    ROUND(AVG(temperature), 3) as temperature,
+    ROUND(AVG(salinity), 3) as salinity
+    FROM OCEAN_DATA
+    WHERE data_date BETWEEN '2009-01-01' AND '2018-12-31'
+    AND salinity BETWEEN 30 and 41
+    AND temperature BETWEEN -2.5 and 40
+    AND to_char(data_date,'Mon') in ('Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep')
+    AND depth <> 'nan'
+    AND in_gulf = 1
+    GROUP BY year, depth_range
+    ORDER BY year, temperature;
+    """
+    param_df = db.run_query(query)
+
+    # Turn the depth_range column values back into categories. Start by replacing commas by hyphen and removing the white space.
+    param_df['depth_range'] = param_df['depth_range'].str.replace(r"\, ", "-")
+    param_df = make_categorical(param_df)
+
+    # Change temp and salinity to floats
+    param_df["temperature"] = param_df["temperature"].astype(float)
+    param_df["salinity"] = param_df["salinity"].astype(float)
+
+    # Make the year column a string
+    param_df['year'] = param_df['year'].astype(int).astype(str)
+
+    return param_df.reset_index(drop=True)
+
 
 gulf_geojson = json.load(open('assets/iho.json'))
 # fish_data = db.run_query()
 fish_data = pd.read_csv('test.csv') # dummy query to avoid hitting up RDS for testing
 fish_data.date = pd.to_datetime(fish_data.date).dt.year # will need to import date as year
-fish_data['total'] = fish_data.iloc[:, 5:-1].sum(axis=1)
+fish_data['total'] = fish_data.iloc[:, 5:-1].sum(axis=1) # we need to calculate total population as well
+#param_data = param_data()
 param_data = pd.read_csv('sample_param_data.csv') # same as above, code in jupyter notebook - will add it to this file later.
 
-# avg_temperature = [{'label': str(i), 'value': str(i)} for i in param_data.temperature]
-# avg_salinity = [{'label': i, 'value': i} for i in param_data.salinity]
 
 def build_fish_dropdown():
     not_fish = ['date', 'station', 'longitude', 'latitude', 'depth', 'region']
@@ -24,8 +73,6 @@ def build_fish_dropdown():
     return dropdown_labels
 
 def build_param_dropdown():
-    #not_param = ['Unnamed: 0', 'year', 'depth_range']
-    #dropdown_labels = [{'label': i, 'value': i} for i in param_data.columns if i not in not_param]
     dropdown_labels = [{'label': i, 'value': i} for i in ['temperature', 'salinity']]
     return dropdown_labels
 
@@ -65,7 +112,7 @@ def serve_layout():
                                html.H4('Indicator'),
                                dcc.Dropdown(id='param_dropdown', options=param_name, value='temperature'),
                                html.H4('Depth'),
-                               dcc.Dropdown(id='depth_dropdown', options=depth_interval, value='(0, 100]'),
+                               dcc.Dropdown(id='depth_dropdown', options=depth_interval, value='0-100'),
                                dcc.Graph(id='indicator'),
                                ],
                      className='two columns'),
@@ -125,7 +172,8 @@ def update_figure(fish_value, param_value, depth_value, year_value):
             go.Densitymapbox(
                 lat=fish_data[(fish_data[fish_value] > 0) & (fish_data.date == year_value)]['latitude'].tolist(),
                 lon=fish_data[(fish_data[fish_value] > 0) & (fish_data.date == year_value)]['longitude'].tolist(),
-                radius=10
+                radius=10,
+                showscale=False
             )
         ],
 
@@ -245,7 +293,6 @@ def update_fish_graph(fish_value):
         'data': [
             go.Indicator(mode="delta", value=pop_2018,
                          delta={'reference': pop_2009, 'relative': True, 'font.size': 28},
-                         #domain={'row': 2, 'column': 0}
                          ),
             go.Scatter(x=df.date, y=df[fish_value])
         ],
