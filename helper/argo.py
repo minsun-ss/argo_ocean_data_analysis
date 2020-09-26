@@ -100,11 +100,6 @@ class argo_manipulation:
                                     "PROJECT_NAME": "data_source"})
                    )
 
-        # Create date column based on file name
-        #file_date = self.fdate.split("_")[0]
-        #self.argo_df["date"] = file_date
-        #self.argo_df["data_date"] = pd.to_datetime(self.argo_df["date"])
-
     def unnest_param(self):
         '''Parameters are list of all measures taken in a cycle. We need to unnest the data to get a single value per row.
         By default, NaN values are stored as 99999.000 so we are dropping these as they indicate no measure was taken.'''
@@ -119,8 +114,8 @@ class argo_manipulation:
         unnested_argo = unnesting(self.argo_df, to_unnest)
         unnested_argo["temperature"] = param([unnested_argo["TEMP"], unnested_argo["TEMP_ADJUSTED"]])
         unnested_argo["salinity"] = param([unnested_argo["PSAL"], unnested_argo["PSAL_ADJUSTED"]])
-        # For every 10 meters you go down, the pressure increases by one atmosphere (approx 1 decibar) so with pressure recorded
-        # in decibar we can assume depth is equivalent.
+        # Because a one-metre (three-foot) column of seawater produces a pressure of about one decibar (0.1 atmosphere),
+        # the pressure in decibars is approximately equal to the depth in metres. https://www.britannica.com/science/seawater/Density-of-seawater-and-pressure
         unnested_argo["depth"] = param([unnested_argo["PRES"], unnested_argo["PRES_ADJUSTED"]])
         unnested_argo = unnested_argo[["data_date", "floatid", "latitude", "longitude", "depth", "temperature", "salinity"]]
         self.argo_df = unnested_argo[unnested_argo != 99999].dropna()
