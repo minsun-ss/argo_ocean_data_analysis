@@ -110,7 +110,7 @@ def _val_format(item):
             return f'\'{item}\''
     elif isinstance(item, (decimal.Decimal, int, float, complex)):
         return str(item)
-    elif isinstance(item, datetime.datetime):
+    elif isinstance(item, (datetime.date, datetime.datetime)):
         item_string = item.strftime('%Y-%m-%d %H:%M:%S.%f')
         return f'\'{item_string}\''
     elif isinstance(item, datetime.timedelta):
