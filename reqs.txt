@@ -1,8 +1,7 @@
+DONE
 - Change the parameter dropdown t0 temperature and salinity only. With text value for difference with baseline - DONE
 - fix coloring on the map - DONE
-- create dynamic scale for temperature and salinity
-- drop the fish color scale
-
+- drop the fish color scale - DONE
 - one chart for temperature - DONE
 + one chart for salinity - DONE
 + one for fish population change over time (default is total but should change with population selection) - DONE
@@ -10,3 +9,7 @@
 + correlation between fish and salinity as text - DONE
 
 Switching on Friday 
+
+Still to do:
+- create dynamic scale for temperature and salinity
+- add data sources in subtitle or below map
