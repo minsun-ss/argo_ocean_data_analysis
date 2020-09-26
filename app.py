@@ -11,7 +11,6 @@ import generate_data as gd
 
 # DATA GENERATION
 gulf_geojson = json.load(open('assets/iho.json'))
-# fish_data = gd.get_fish_data()
 param_data = gd.get_param_data()
 fish_aggregate = gd.get_fish_aggregate()
 fish_locations = gd.get_fish_locations()
@@ -58,7 +57,7 @@ def serve_layout():
                                                  'displayModeBar': False}, style={'width': '100%'}),
                      className='ten columns')]),
         html.Div(children=[
-            html.Div(html.H2('-'), className='two columns'),
+            html.Div(html.H2('.'), className='two columns'),
             html.Div(children=[html.Header('Select a year to display change on the map'),
                                dcc.Slider(id='year-slider', min=2009, max=2018,
                                           value=2018, marks={year: str(year) for year in range(2009, 2019)},
@@ -93,7 +92,6 @@ def get_color(color_value, param_value):
     b_value = min(b_value, 255)
 
     return f'rgb({b_value}, {b_value}, 255)'
-
 
 # CALLBACK FOR THE FISH MAP
 @app.callback(
@@ -241,7 +239,6 @@ def update_salinity(depth_value):
 def update_fish_graph(fish_value):
     fish_sum = fish_aggregate[fish_aggregate['fish_type']==fish_value].copy()
     fish_sum.sort_values(by='year', inplace=True)
-    print(fish_sum[fish_sum['year']==2009]['fish_total'].values[0])
 
     pop_2009 = fish_sum[fish_sum['year']==2009]['fish_total'].values[0]
     pop_2018 = fish_sum[fish_sum['year']==2018]['fish_total'].values[0]

@@ -1,10 +1,12 @@
 import pandas as pd
 import json
+from helper import db
 
 # setting up the data for the heroku visualization away from the flask app itself
 
+# this is the old tester data
 def get_fish_data():
-    fish_data = pd.read_csv('test.csv') # dummy query to avoid hitting up RDS for testing
+    fish_data = pd.read_csv('testfiles/test.csv') # dummy query to avoid hitting up RDS for testing
     fish_data.date = pd.to_datetime(fish_data.date).dt.year # will need to import date as year
     fish_data['total'] = fish_data.iloc[:, 5:-1].sum(axis=1) # we need to calculate total population as well
     return fish_data
@@ -17,8 +19,12 @@ def get_fish_aggregate(**kwargs):
     WHERE fish_count>0
     GROUP by YEAR, rollup(fish_type)) AS t1"""
 
+    try:
+        fish_data = db.run_query(query)
+    except:
+        fish_data = pd.read_csv('testfiles/fish_aggregate.csv')
+
     # test aggregate file for now
-    fish_data = pd.read_csv('fish_aggregate.csv')
     fish_data['year'] = fish_data['year'].astype('int')
     return fish_data
 
@@ -29,19 +35,24 @@ def get_fish_locations():
     WHERE fish_count>0;
     """
 
-    fish_locations = pd.read_csv('fish_locations.csv')
+    try:
+        fish_locations = db.run_query(fish_data)
+    except:
+        fish_locations = pd.read_csv('testfiles/fish_locations.csv')
+
     fish_locations['year'] = fish_locations['year'].astype('int')
     return fish_locations
 
 def get_param_data():
-    param_data = pd.read_csv(
-        'sample_param_data.csv')  # same as above, code in jupyter notebook - will add it to this file later.
+    try:
+        param_data = build_param_data()
+    except:
+        param_data = pd.read_csv('testfiles/sample_param_data.csv')
     return param_data
 
 def correlation_table(fish_df, param_df):
     df = fish_df.merge(param_df, on='year')[['year', 'fish_type', 'fish_total', 'depth_range', 'temperature', 'salinity']]
     return df
-
 
 def make_categorical(df):
     '''Generates intervals of type '0-100' then map them to the depth column to make it categorical.'''
