@@ -9,6 +9,7 @@ from helper import config as cfg
 from pandas.api.types import CategoricalDtype
 
 
+
 def make_categorical(df):
     '''Generates intervals of type '0-100' then map them to the depth column to make it categorical.'''
     intervals = ["{}-{}".format(i * 100, (i + 1) * 100) for i in range(60)]
@@ -16,7 +17,6 @@ def make_categorical(df):
     cat_type = CategoricalDtype(categories=intervals, ordered=True)
     df["depth_range"] = df["depth_range"].astype(cat_type)
     return df
-
 
 def param_data():
     '''Return a dataframe with average temperature and salinity by depth and year,
@@ -80,6 +80,9 @@ def build_depth_dropdown():
     dropdown_labels = [{'label': i, 'value': i} for i in sorted([i for i in param_data.depth_range.unique()])]
     return dropdown_labels
 
+# efficiencies!!!
+FISH_DROPDOWN, PARAM_DROPDOWN, DEPTH_DROPDOWN = build_fish_dropdown(), build_param_dropdown(), build_depth_dropdown()
+
 def build_graph(id_name):
     return html.Div([dcc.Graph(id=id_name)], className='one-third column',
                     style={'marginBottom': 25, 'marginTop': 25}
@@ -93,9 +96,6 @@ server = app.server
 
 # Serve layout separately in order for page to always load this layout on default
 def serve_layout():
-    fish_name = build_fish_dropdown()
-    param_name = build_param_dropdown()
-    depth_interval = build_depth_dropdown()
     return html.Div(
         children=[
         html.Div(children=[html.H2("Estuary and Gulf of St. Lawrence: Temperatures, Salinity, and Fish Populations"),
@@ -108,11 +108,11 @@ def serve_layout():
                  id='title', title='atitle', style={'marginBottom': 25}),
         html.Div(children=[
             html.Div(children=[html.H4('Fish Population'),
-                               dcc.Dropdown(id='fish_dropdown', options=fish_name, value='total'),
+                               dcc.Dropdown(id='fish_dropdown', options=FISH_DROPDOWN, value='total'),
                                html.H4('Indicator'),
-                               dcc.Dropdown(id='param_dropdown', options=param_name, value='temperature'),
+                               dcc.Dropdown(id='param_dropdown', options=PARAM_DROPDOWN, value='temperature'),
                                html.H4('Depth (meters)'),
-                               dcc.Dropdown(id='depth_dropdown', options=depth_interval, value='0-100'),
+                               dcc.Dropdown(id='depth_dropdown', options=DEPTH_DROPDOWN, value='0-100'),
                                dcc.Graph(id='indicator'),
                                ],
                      className='two columns'),
