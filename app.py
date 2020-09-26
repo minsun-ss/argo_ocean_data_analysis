@@ -69,7 +69,7 @@ param_data = pd.read_csv('sample_param_data.csv') # same as above, code in jupyt
 
 def build_fish_dropdown():
     not_fish = ['date', 'station', 'longitude', 'latitude', 'depth', 'region']
-    dropdown_labels = [{'label': i, 'value': i} for i in fish_data.columns if i not in not_fish]
+    dropdown_labels = [{'label': i.replace('_', ' '), 'value': i} for i in fish_data.columns if i not in not_fish]
     return dropdown_labels
 
 def build_param_dropdown():
@@ -111,7 +111,7 @@ def serve_layout():
                                dcc.Dropdown(id='fish_dropdown', options=fish_name, value='total'),
                                html.H4('Indicator'),
                                dcc.Dropdown(id='param_dropdown', options=param_name, value='temperature'),
-                               html.H4('Depth'),
+                               html.H4('Depth (meters)'),
                                dcc.Dropdown(id='depth_dropdown', options=depth_interval, value='0-100'),
                                dcc.Graph(id='indicator'),
                                ],
@@ -125,11 +125,17 @@ def serve_layout():
                                dcc.Slider(id='year-slider', min=2009, max=2018,
                                           value=2018, marks={year: str(year) for year in range(2009, 2019)},
                                           step=None)],
-                     style={'marginBottom': 25}, className='ten columns')]),
+                     style={'marginBottom': 0}, className='ten columns')]),
         html.Div(children=[
-            html.Div(dcc.Graph(id='temperature_graph'), className='one-third column'),
-            html.Div(dcc.Graph(id='salinity_graph'), className='one-third column'),
-            html.Div(dcc.Graph(id='fish_graph'), className='one-third column')
+            html.Div(dcc.Graph(id='temperature_graph', config={'autosizable': True, 'displayModeBar': False},
+                               style={'width':'120%'}),
+                     className='four columns'),
+            html.Div(dcc.Graph(id='salinity_graph',  config={'autosizable': True, 'displayModeBar': False},
+                               style={'width': '120%'}),
+                     className='four columns'),
+            html.Div(dcc.Graph(id='fish_graph',  config={'autosizable': True, 'displayModeBar': False},
+                               style={'width':'120%'}),
+                     className='four columns')
         ], className='twelve columns')])
 
 app.layout = serve_layout
@@ -151,7 +157,7 @@ def get_color(color_value, param_value):
     return f'rgb({b_value}, {b_value}, 255)'
 
 # this is a simple callback function for when the dropdowns changes - you serve data to the input
-# and output. only 1 input can serve a change, but can serve to multiple outputs.
+# and output. only 1 out  can serve a change, but can serve from multiple inputs.
 @app.callback(
     dash.dependencies.Output('fish', 'figure')
     , [dash.dependencies.Input('fish_dropdown', 'value'),
@@ -241,7 +247,7 @@ def update_indicators(fish_value, param_name, depth_value, year_value):
             go.Indicator(number={"valueformat": ".2f", 'font.size':30}, value=correlation,
                          title={
                              "text": f"<span style='font-size:2.8em'>Correlation score <br></span>"
-                                     f"<br><span style='font-size:2em;color:gray'>with {fish_value} population</span>"},
+                                     f"<br><span style='font-size:1.5em;color:gray'>with {fish_value.replace('_', ' ')} population</span>"},
                          domain={'row': 4, 'column': 0}
                          )
         ],
@@ -261,7 +267,7 @@ def update_temperature(depth_value):
             go.Scatter(x=df.year, y=df.temperature)
         ],
 
-        'layout': go.Layout(title=f"Average April-September Temperature Evolution - {depth_value}m")
+        'layout': go.Layout(title=f"Average April-September <br> Temperature Evolution - {depth_value}m")
     }
 
 
@@ -277,7 +283,7 @@ def update_salinity(depth_value):
             go.Scatter(x=df.year, y=df.salinity)
         ],
 
-        'layout': go.Layout(title=f"Average April-September Salinity Evolution - {depth_value}m")
+        'layout': go.Layout(title=f"Average April-September <br> Salinity Evolution - {depth_value}m")
     }
 
 @app.callback(
@@ -297,7 +303,7 @@ def update_fish_graph(fish_value):
             go.Scatter(x=df.date, y=df[fish_value])
         ],
 
-        'layout': go.Layout(title=f"{fish_value} Population Evolution")
+        'layout': go.Layout(title=f"{fish_value.replace('_', ' ').title()} <br> Population Evolution")
     }
 
 
