@@ -109,6 +109,7 @@ def serve_layout():
         html.Div(children=[
             html.Div(children=[html.H4('Fish Population'),
                                dcc.Dropdown(id='fish_dropdown', options=fish_name, value='total'),
+                               html.Img(id='fish_image', src='https://upload.wikimedia.org/wikipedia/commons/3/30/Pollachius_virens.png'),
                                html.H4('Indicator'),
                                dcc.Dropdown(id='param_dropdown', options=param_name, value='temperature'),
                                html.H4('Depth'),
