@@ -46,25 +46,22 @@ def serve_layout():
                            ],
                  id='title', title='atitle', style={'marginBottom': 25}),
         html.Div(children=[
-            html.Div(children=[html.H4('Fish Population'),
+            html.Div(children=[html.H5('Fish Population'),
                                dcc.Dropdown(id='fish_dropdown', options=FISH_DROPDOWN, value='total'),
-                               html.H4('Indicator'),
+                               html.H5('Indicator'),
                                dcc.Dropdown(id='param_dropdown', options=PARAM_DROPDOWN, value='temperature'),
-                               html.H4('Depth (meters)'),
+                               html.H5('Depth (meters)'),
                                dcc.Dropdown(id='depth_dropdown', options=DEPTH_DROPDOWN, value='0-100'),
                                html.Div(children=['No fish data available.'], id='fish_infobox')
                                ],
                      className='three columns'),
-            html.Div(dcc.Graph(id='fish',config={'autosizable': True, 'displaylogo': False,
+            html.Div(children=[dcc.Graph(id='fish',config={'autosizable': True, 'displaylogo': False,
                                                  'displayModeBar': False}, style={'width': '100%'}),
-                     className='nine columns')]),
-        html.Div(children=[
-            html.Div(html.H4('.'), className='three columns'),
-            html.Div(children=[html.Header('Select a year to display change on the map'),
-                               dcc.Slider(id='year-slider', min=2009, max=2018,
+                               html.Div(dcc.Slider(id='year-slider', min=2009, max=2018,
                                           value=2018, marks={year: str(year) for year in range(2009, 2019)},
-                                          step=None)],
-                     style={'marginBottom': 15}, className='nine columns')]),
+                                          step=None), style={'width': '95%', 'marginTop': 25})
+                               ],
+                     className='nine columns')]),
         html.Div(children=[
             html.Div(dcc.Graph(id='indicator', config={'displayModeBar': False}, style={'marginTop': 0}), className='three columns'),
             html.Div(dcc.Graph(id='temperature_graph', config={'autosizable': True, 'displayModeBar': False},
@@ -304,7 +301,7 @@ def update_fish_desc(fish_value):
         return [html.P('Select fish population to access fish description.', style={'marginTop': 30})]
     else:
         info = fish_info[fish_info['fish_value']==fish_value]
-        return [html.Img(src=info.picture.values[0], style={'marginTop': 30, 'text-align': 'center', 'maxHeight':'200px'}),
+        return [html.Img(src=info.picture.values[0], style={'marginTop': 30, 'text-align': 'center', 'width':'100%'}),
                 html.Br(),
                 dcc.Link(html.A(f'{info.picture_credits.values[0]}'), href=f'{info.credits_link.values[0]}', style={'fontSize': '12px'}),
                 html.P(f'Depth Range: {info.depth_range.values[0]}', style={'fontSize': '14px'}),
