@@ -54,19 +54,19 @@ def serve_layout():
                                dcc.Dropdown(id='depth_dropdown', options=DEPTH_DROPDOWN, value='0-100'),
                                dcc.Graph(id='indicator'),
                                ],
-                     className='two columns'),
+                     className='three columns'),
             html.Div(dcc.Graph(id='fish',config={'autosizable': True, 'displaylogo': False,
                                                  'displayModeBar': False}, style={'width': '100%'}),
-                     className='ten columns')]),
+                     className='nine columns')]),
         html.Div(children=[
-            html.Div(html.H4('.'), className='two columns'),
+            html.Div(html.H4('.'), className='three columns'),
             html.Div(children=[html.Header('Select a year to display change on the map'),
                                dcc.Slider(id='year-slider', min=2009, max=2018,
                                           value=2018, marks={year: str(year) for year in range(2009, 2019)},
                                           step=None)],
-                     style={'marginBottom': 0}, className='ten columns')]),
+                     style={'marginBottom': 0}, className='nine columns')]),
         html.Div(children=[
-            html.Div('Total', id='fish_infobox', className='two columns'),
+            html.Div(children=['No fish data available.'], id='fish_infobox', className='three columns'),
             html.Div(dcc.Graph(id='temperature_graph', config={'autosizable': True, 'displayModeBar': False},
                                style={'width':'100%'}),
                      className='three columns'),
@@ -309,7 +309,7 @@ def update_fish_graph(fish_value):
     , [dash.dependencies.Input('fish_dropdown', 'value')
        ])
 def update_salinity(fish_value):
-    if fish_value=='total':
+    if fish_value not in fish_info['fish_value'].unique().tolist():
         return [html.P('No fish data available.')]
     else:
         info = fish_info[fish_info['fish_value']==fish_value]
