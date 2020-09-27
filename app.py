@@ -52,7 +52,7 @@ def serve_layout():
                                dcc.Dropdown(id='param_dropdown', options=PARAM_DROPDOWN, value='temperature'),
                                html.H4('Depth (meters)'),
                                dcc.Dropdown(id='depth_dropdown', options=DEPTH_DROPDOWN, value='0-100'),
-                               dcc.Graph(id='indicator'),
+                               html.Div(children=['No fish data available.'], id='fish_infobox')
                                ],
                      className='three columns'),
             html.Div(dcc.Graph(id='fish',config={'autosizable': True, 'displaylogo': False,
@@ -64,9 +64,9 @@ def serve_layout():
                                dcc.Slider(id='year-slider', min=2009, max=2018,
                                           value=2018, marks={year: str(year) for year in range(2009, 2019)},
                                           step=None)],
-                     style={'marginBottom': 0}, className='nine columns')]),
+                     style={'marginBottom': 15}, className='nine columns')]),
         html.Div(children=[
-            html.Div(children=['No fish data available.'], id='fish_infobox', className='three columns'),
+            html.Div(dcc.Graph(id='indicator', config={'displayModeBar': False}, style={'marginTop': 0}), className='three columns'),
             html.Div(dcc.Graph(id='temperature_graph', config={'autosizable': True, 'displayModeBar': False},
                                style={'width':'100%'}),
                      className='three columns'),
@@ -179,16 +179,8 @@ def suffix_indicator(param_name):
         return "No such parameter"
 
 def correlation_score(fish_value, param_name, depth_value):
-    # slightly faster calculations to correlations now since merge is done early on and this is just a filter.
     temp_df = correlation_table[(correlation_table['fish_type']==fish_value) & (correlation_table['depth_range']==depth_value)]
     corr = temp_df[param_name].corr(temp_df['fish_total'])
-    # old correlation calculation - commented out for now for bug testing
-    # fish = fish_data[['date', fish_value]].groupby('date').sum().reset_index().rename(columns={'date': 'year'})
-    # param = param_data[param_data.depth_range == depth_value][['year', param_name]]
-    # df = param.merge(fish, on='year')
-    # old_corr = df[param_name].corr(df[fish_value])
-    # print(corr, old_corr)
-    # return old_corr
     return corr
 
 # CALLBACK FOR THE STAT BAR
@@ -206,7 +198,6 @@ def update_indicators(fish_value, param_name, depth_value, year_value):
     prev_year = df[param_name].shift(1).loc[df['year'] == year_value].item()
     unit = suffix_indicator(param_name)
     correlation = correlation_score(fish_value, param_name, depth_value)
-    # print('correlation: ', correlation)
 
     return {
         'data': [
@@ -308,17 +299,17 @@ def update_fish_graph(fish_value):
     dash.dependencies.Output('fish_infobox', 'children')
     , [dash.dependencies.Input('fish_dropdown', 'value')
        ])
-def update_salinity(fish_value):
+def update_fish_desc(fish_value):
     if fish_value not in fish_info['fish_value'].unique().tolist():
-        return [html.P('No fish data available.')]
+        return [html.P('Select fish population to access fish description.', style={'marginTop': 30})]
     else:
         info = fish_info[fish_info['fish_value']==fish_value]
-        return [html.Img(src=info.picture.values[0], width='100%'),
+        return [html.Img(src=info.picture.values[0], width='100%', style={'marginTop': 30, 'marginLeft':5}),
                 html.Br(),
-                dcc.Link(html.A(f'{info.picture_credits.values[0]}'), href=f'{info.credits_link.values[0]}', style={'fontSize': '10px'}),
-                html.P(f'Depth Range: {info.depth_range.values[0]}', style={'fontSize': '12px'}),
-                html.P(f'{info.fish_name.values[0].title()}: {info.description.values[0]}', style={'fontSize': '12px'}),
-                dcc.Link(html.A('Fishbase Link'), href=f'{info.fishbase_link.values[0]}', style={'fontSize': '10px'})
+                dcc.Link(html.A(f'{info.picture_credits.values[0]}'), href=f'{info.credits_link.values[0]}', style={'fontSize': '12px'}),
+                html.P(f'Depth Range: {info.depth_range.values[0]}', style={'fontSize': '14px'}),
+                html.P(f'{info.fish_name.values[0].title()}: {info.description.values[0]}', style={'fontSize': '14px'}),
+                dcc.Link(html.A('Fishbase Link'), href=f'{info.fishbase_link.values[0]}', style={'fontSize': '12px'})
                 ]
 
 if __name__== '__main__':
