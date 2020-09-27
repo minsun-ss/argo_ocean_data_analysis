@@ -67,7 +67,7 @@ def serve_layout():
                                           step=None)],
                      style={'marginBottom': 0}, className='ten columns')]),
         html.Div(children=[
-            html.Div('Total', id='fish_info', className='three columns'),
+            html.Div('Total', id='fish_info', className='two columns'),
             html.Div(dcc.Graph(id='temperature_graph', config={'autosizable': True, 'displayModeBar': False},
                                style={'width':'100%'}),
                      className='three columns'),
@@ -259,7 +259,7 @@ def update_temperature(depth_value):
             go.Scatter(name='trend', x=df.year, y=df.bestfit, mode='lines', showlegend=False, opacity=0.5)
         ],
         'layout': go.Layout(title=f"Average April-September <br> Temperature Evolution - {depth_value}m",
-                            margin=dict(l=50, r=25,b=100,t=50,pad=0))
+                            margin=dict(l=40, r=0,b=100,t=50,pad=0))
     }
 
 # CALLBACK FOR THE SALINITY CHART
@@ -276,7 +276,7 @@ def update_salinity(depth_value):
             go.Scatter(name='trend', x=df.year, y=df.bestfit, mode='lines', showlegend=False, opacity=0.5)
         ],
         'layout': go.Layout(title=f"Average April-September <br> Salinity Evolution - {depth_value}m",
-                            margin=dict(l=50, r=25,b=100,t=50,pad=0))
+                            margin=dict(l=40, r=0,b=100,t=50,pad=0))
     }
 
 # CALLBACK FOR THE POPULATION CHART
@@ -300,7 +300,7 @@ def update_fish_graph(fish_value):
         ],
 
         'layout': go.Layout(title=f"{fish_value.replace('_', ' ').title()} <br> Population Evolution",
-                            margin=dict(l=50, r=25,b=100,t=50,pad=0),
+                            margin=dict(l=40, r=0,b=100,t=50,pad=0),
                             )
     }
 
@@ -314,7 +314,7 @@ def update_salinity(fish_value):
         return [html.P('No fish data available.')]
     else:
         info = fish_info[fish_info['fish_value']==fish_value]
-        return [html.Img(src=info.picture.values[0], width='50%'),
+        return [html.Img(src=info.picture.values[0], width='100%'),
                 html.Br(),
                 dcc.Link(html.A(f'{info.picture_credits.values[0]}'), href=f'{info.credits_link.values[0]}', style={'fontSize': '10px'}),
                 html.P(f'Depth Range: {info.depth_range.values[0]}', style={'fontSize': '12px'}),
