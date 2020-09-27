@@ -16,6 +16,7 @@ gulf_geojson = json.load(open('assets/iho.json'))
 param_data = gd.get_param_data()
 fish_aggregate = gd.get_fish_aggregate()
 fish_locations = gd.get_fish_locations()
+fish_info = gd.get_fish_info()
 correlation_table = gd.correlation_table(fish_aggregate, param_data)
 
 def build_dropdowns():
@@ -59,22 +60,23 @@ def serve_layout():
                                                  'displayModeBar': False}, style={'width': '100%'}),
                      className='ten columns')]),
         html.Div(children=[
-            html.Div(html.H2('.'), className='two columns'),
+            html.Div(html.H4('.'), className='two columns'),
             html.Div(children=[html.Header('Select a year to display change on the map'),
                                dcc.Slider(id='year-slider', min=2009, max=2018,
                                           value=2018, marks={year: str(year) for year in range(2009, 2019)},
                                           step=None)],
                      style={'marginBottom': 0}, className='ten columns')]),
         html.Div(children=[
+            html.Div('Total', id='fish_info', className='two columns'),
             html.Div(dcc.Graph(id='temperature_graph', config={'autosizable': True, 'displayModeBar': False},
                                style={'width':'100%'}),
-                     className='four columns'),
+                     className='three columns'),
             html.Div(dcc.Graph(id='salinity_graph',  config={'autosizable': True, 'displayModeBar': False},
                                style={'width': '100%'}),
-                     className='four columns'),
+                     className='three columns'),
             html.Div(dcc.Graph(id='fish_graph',  config={'autosizable': True, 'displayModeBar': False},
                                style={'width':'100%'}),
-                     className='four columns')
+                     className='three columns')
         ], className='twelve columns')])
 
 app.layout = serve_layout
@@ -272,7 +274,7 @@ def update_salinity(depth_value):
                             margin=dict(l=50, r=25,b=100,t=50,pad=0))
     }
 
-# CALLBACK FOR THE POPULATIOn CHART
+# CALLBACK FOR THE POPULATION CHART
 @app.callback(
     dash.dependencies.Output('fish_graph', 'figure')
     , [dash.dependencies.Input('fish_dropdown', 'value')
@@ -297,6 +299,14 @@ def update_fish_graph(fish_value):
                             )
     }
 
+# CALLBACK FOR THE FISH INFO WINDOW
+@app.callback(
+    dash.dependencies.Output('fish_info', 'children')
+    , [dash.dependencies.Input('fish_dropdown', 'value')
+       ])
+def update_salinity(fish_value):
+    return [html.H4(f'{fish_value}')
+            ]
 
 if __name__== '__main__':
     app.run_server(debug=True)
