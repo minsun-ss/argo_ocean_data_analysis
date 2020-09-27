@@ -67,7 +67,7 @@ def serve_layout():
                                           step=None)],
                      style={'marginBottom': 0}, className='ten columns')]),
         html.Div(children=[
-            html.Div('Total', id='fish_info', className='two columns'),
+            html.Div('Total', id='fish_info', className='three columns'),
             html.Div(dcc.Graph(id='temperature_graph', config={'autosizable': True, 'displayModeBar': False},
                                style={'width':'100%'}),
                      className='three columns'),
@@ -310,7 +310,12 @@ def update_fish_graph(fish_value):
     , [dash.dependencies.Input('fish_dropdown', 'value')
        ])
 def update_salinity(fish_value):
-    return [html.H4(f'{fish_value}')
+    info = fish_info[fish_info['fish_value']==fish_value]
+    return [html.H5(f'{info.fish_name.values[0]}'),
+            html.Img(src=info.picture.values[0], width='100%'),
+            html.P(f'Depth Range: {info.depth_range.values[0]}'),
+            html.P(f'Description: {info.description.values[0]}'),
+            html.P(f'Fishbase: {info.fishbase_link.values[0]}')
             ]
 
 if __name__== '__main__':
