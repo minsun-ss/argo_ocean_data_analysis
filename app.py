@@ -67,13 +67,13 @@ def serve_layout():
                      style={'marginBottom': 0}, className='ten columns')]),
         html.Div(children=[
             html.Div(dcc.Graph(id='temperature_graph', config={'autosizable': True, 'displayModeBar': False},
-                               style={'width':'120%'}),
+                               style={'width':'100%'}),
                      className='four columns'),
             html.Div(dcc.Graph(id='salinity_graph',  config={'autosizable': True, 'displayModeBar': False},
-                               style={'width': '120%'}),
+                               style={'width': '100%'}),
                      className='four columns'),
             html.Div(dcc.Graph(id='fish_graph',  config={'autosizable': True, 'displayModeBar': False},
-                               style={'width':'120%'}),
+                               style={'width':'100%'}),
                      className='four columns')
         ], className='twelve columns')])
 
@@ -252,7 +252,8 @@ def update_temperature(depth_value):
             go.Scatter(name='', x=df.year, y=df.temperature, showlegend=False),
             go.Scatter(name='trend', x=df.year, y=df.bestfit, mode='lines', showlegend=False, opacity=0.5)
         ],
-        'layout': go.Layout(title=f"Average April-September <br> Temperature Evolution - {depth_value}m")
+        'layout': go.Layout(title=f"Average April-September <br> Temperature Evolution - {depth_value}m",
+                            margin=dict(l=50, r=25,b=100,t=50,pad=0))
     }
 
 # CALLBACK FOR THE SALINITY CHART
@@ -268,7 +269,8 @@ def update_salinity(depth_value):
             go.Scatter(name='', x=df.year, y=df.salinity, showlegend=False),
             go.Scatter(name='trend', x=df.year, y=df.bestfit, mode='lines', showlegend=False, opacity=0.5)
         ],
-        'layout': go.Layout(title=f"Average April-September <br> Salinity Evolution - {depth_value}m")
+        'layout': go.Layout(title=f"Average April-September <br> Salinity Evolution - {depth_value}m",
+                            margin=dict(l=50, r=25,b=100,t=50,pad=0))
     }
 
 # CALLBACK FOR THE POPULATIOn CHART
@@ -291,7 +293,9 @@ def update_fish_graph(fish_value):
             go.Scatter(x=fish_sum.year, y=fish_sum['fish_total'])
         ],
 
-        'layout': go.Layout(title=f"{fish_value.replace('_', ' ').title()} <br> Population Evolution")
+        'layout': go.Layout(title=f"{fish_value.replace('_', ' ').title()} <br> Population Evolution",
+                            margin=dict(l=50, r=25,b=100,t=50,pad=0),
+                            )
     }
 
 
