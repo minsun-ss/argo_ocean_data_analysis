@@ -262,7 +262,7 @@ def update_temperature(depth_value):
                             margin=dict(l=40, r=0,b=100,t=50,pad=0))
     }
 
-# CALLBACK FOR THE SALINITY CHART
+# CALLBACK FOR THE SALINITY CHART 
 @app.callback(
     dash.dependencies.Output('salinity_graph', 'figure')
     , [dash.dependencies.Input('depth_dropdown', 'value')
