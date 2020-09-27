@@ -119,8 +119,7 @@ def update_figure(fish_value, param_value, depth_value, year_value):
 
     color_value = param_data[(param_data.depth_range == depth_value)&(param_data.year == year_value)][param_value].item()
 
-    map_color = get_color(color_value, param_value)[0]
-    map_colorscale = get_color(color_value, param_value)[1]
+    map_color, map_colorscale = get_color(color_value, param_value)
 
     return {
         'data': [
