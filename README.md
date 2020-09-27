@@ -3,6 +3,8 @@
 ## UMICH SIADS 591-592 Project
 ## Authors: Claire-Isabelle Carlier, Sharon Sung
 
+## Final Visualization: https://siads591-sscc.herokuapp.com/
+
 ## Motivation
 
 Our proposed project was to use Argo data (a data set of ocean floats that collect variables such as salinity and 
