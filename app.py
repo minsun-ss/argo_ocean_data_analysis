@@ -301,7 +301,6 @@ def update_fish_desc(fish_value):
         return [html.P('Select fish population to access fish description.', style={'marginTop': 30})]
     else:
         info = fish_info[fish_info['fish_value']==fish_value]
-        print(info.picture.values[0])
         return [html.Img(src=info.picture.values[0], style={'marginTop': 30, 'width':'100%'}),
                 html.Br(),
                 dcc.Link(html.A(f'{info.picture_credits.values[0]}'), href=f'{info.credits_link.values[0]}', style={'fontSize': '12px'}),
