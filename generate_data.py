@@ -11,6 +11,10 @@ def get_fish_data():
     fish_data['total'] = fish_data.iloc[:, 5:-1].sum(axis=1) # we need to calculate total population as well
     return fish_data
 
+def get_fish_info():
+    fish_info = pd.read_excel('fish_desc.xlsx')
+    return fish_info
+
 def get_fish_aggregate(**kwargs):
     query = """
     SELECT YEAR, COALESCE(fish_type, 'total') AS fish_type, avg_depth, fish_total FROM 

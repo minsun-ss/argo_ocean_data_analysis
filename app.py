@@ -310,13 +310,17 @@ def update_fish_graph(fish_value):
     , [dash.dependencies.Input('fish_dropdown', 'value')
        ])
 def update_salinity(fish_value):
-    info = fish_info[fish_info['fish_value']==fish_value]
-    return [html.H5(f'{info.fish_name.values[0]}'),
-            html.Img(src=info.picture.values[0], width='100%'),
-            html.P(f'Depth Range: {info.depth_range.values[0]}'),
-            html.P(f'Description: {info.description.values[0]}'),
-            html.P(f'Fishbase: {info.fishbase_link.values[0]}')
-            ]
+    if fish_value=='total':
+        return [html.P('No fish data available.')]
+    else:
+        info = fish_info[fish_info['fish_value']==fish_value]
+        return [html.Img(src=info.picture.values[0], width='50%'),
+                html.Br(),
+                dcc.Link(html.A(f'{info.picture_credits.values[0]}'), href=f'{info.credits_link.values[0]}', style={'fontSize': '10px'}),
+                html.P(f'Depth Range: {info.depth_range.values[0]}', style={'fontSize': '12px'}),
+                html.P(f'{info.fish_name.values[0].title()}: {info.description.values[0]}', style={'fontSize': '12px'}),
+                dcc.Link(html.A('Fishbase Link'), href=f'{info.fishbase_link.values[0]}', style={'fontSize': '10px'})
+                ]
 
 if __name__== '__main__':
     app.run_server(debug=True)
