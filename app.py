@@ -8,6 +8,8 @@ import pandas as pd
 from helper import config as cfg
 from pandas.api.types import CategoricalDtype
 import generate_data as gd
+import numpy as np
+from sklearn.linear_model import LinearRegression
 
 # DATA GENERATION
 gulf_geojson = json.load(open('assets/iho.json'))
@@ -231,17 +233,24 @@ def update_indicators(fish_value, param_name, depth_value, year_value):
         'layout': go.Layout(grid={'rows': 5, 'columns': 1, 'pattern': "independent"})
     }
 
+def param_trend(depth_value, param_name):
+    df = param_data[param_data.depth_range == depth_value][['year', param_name]]
+    reg = LinearRegression().fit(np.vstack(df.year), df[param_name])
+    df['bestfit'] = reg.predict(np.vstack(df.year))
+    return df
+
 # CALLBACK FOR THE TEMPERATURE CHART
 @app.callback(
     dash.dependencies.Output('temperature_graph', 'figure')
     , [dash.dependencies.Input('depth_dropdown', 'value')
        ])
 def update_temperature(depth_value):
-    df = param_data[param_data.depth_range == depth_value][['year', 'temperature']]
+    df = param_trend(depth_value, 'temperature')
 
     return {
         'data': [
-            go.Scatter(x=df.year, y=df.temperature)
+            go.Scatter(name='', x=df.year, y=df.temperature, showlegend=False),
+            go.Scatter(name='trend', x=df.year, y=df.bestfit, mode='lines', showlegend=False, opacity=0.5)
         ],
         'layout': go.Layout(title=f"Average April-September <br> Temperature Evolution - {depth_value}m")
     }
@@ -252,11 +261,12 @@ def update_temperature(depth_value):
     , [dash.dependencies.Input('depth_dropdown', 'value')
        ])
 def update_salinity(depth_value):
-    df = param_data[param_data.depth_range == depth_value][['year', 'salinity']]
+    df = param_trend(depth_value, 'salinity')
 
     return {
         'data': [
-            go.Scatter(x=df.year, y=df.salinity)
+            go.Scatter(name='', x=df.year, y=df.salinity, showlegend=False),
+            go.Scatter(name='trend', x=df.year, y=df.bestfit, mode='lines', showlegend=False, opacity=0.5)
         ],
         'layout': go.Layout(title=f"Average April-September <br> Salinity Evolution - {depth_value}m")
     }
