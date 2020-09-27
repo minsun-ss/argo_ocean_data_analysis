@@ -12,7 +12,7 @@ def get_fish_data():
     return fish_data
 
 def get_fish_info():
-    fish_info = pd.read_excel('fish_desc.xlsx')
+    fish_info = pd.read_excel('testfiles/fish_desc.xlsx')
     return fish_info
 
 def get_fish_aggregate(**kwargs):
