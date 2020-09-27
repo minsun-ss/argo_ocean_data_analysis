@@ -3,7 +3,6 @@ import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objs as go
 import json
-from helper import db
 import pandas as pd
 from helper import config as cfg
 from pandas.api.types import CategoricalDtype
@@ -67,7 +66,7 @@ def serve_layout():
                                           step=None)],
                      style={'marginBottom': 0}, className='ten columns')]),
         html.Div(children=[
-            html.Div('Total', id='fish_info', className='two columns'),
+            html.Div('Total', id='fish_infobox', className='two columns'),
             html.Div(dcc.Graph(id='temperature_graph', config={'autosizable': True, 'displayModeBar': False},
                                style={'width':'100%'}),
                      className='three columns'),
@@ -306,7 +305,7 @@ def update_fish_graph(fish_value):
 
 # CALLBACK FOR THE FISH INFO WINDOW
 @app.callback(
-    dash.dependencies.Output('fish_info', 'children')
+    dash.dependencies.Output('fish_infobox', 'children')
     , [dash.dependencies.Input('fish_dropdown', 'value')
        ])
 def update_salinity(fish_value):
