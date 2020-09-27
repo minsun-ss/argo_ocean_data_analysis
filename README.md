@@ -1,4 +1,7 @@
-# argo_ocean_data_analysis
+# Argo Ocean Data Analysis
+
+## UMICH SIADS 591-592 Project
+## Authors: Claire-Isabelle Carlier, Sharon Sung
 
 ## Motivation
 
