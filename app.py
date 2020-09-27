@@ -79,19 +79,26 @@ app.layout = serve_layout
 
 def get_color(color_value, param_value):
     if param_value not in ['temperature', 'salinity']:
-        b_value = (color_value+5)/8*255
+        return 'rgb(255, 255, 255)', None
     elif param_value == 'temperature':
-        b_value = (color_value-3)/8*255
+        r = round((color_value - 2) / 10 * (191 + 10))
+        g = round((color_value - 2) / 10 * (227 + 10))
+        b = round((color_value - 2) / 10 * (225 + 10))
+        tick_vals = [0, 4, 8, 11]
     elif param_value == 'salinity':
-        b_value = (color_value-30)/6*255
-    else:
-        b_value = 0
+        r = round((color_value - 30) / 6 * (191 + 10))
+        g = round((color_value - 30) / 6 * (227 + 10))
+        b = round((color_value - 30) / 6 * (225 + 10))
+        tick_vals = [30, 32, 34, 36]
 
-    # b_value should always be in the RGB range 0-255
-    b_value = max(b_value, 0)
-    b_value = min(b_value, 255)
+    # r should always be in the range 96-191
+    r = (min(max(r, 96), 191))
+    # g should always be in the range 118-227
+    g = (min(max(g, 118), 227))
+    # b should always be in the range 142-225
+    b = (min(max(b, 142), 225))
 
-    return f'rgb({b_value}, {b_value}, 255)'
+    return f'rgb({r}, {g}, {b})', tick_vals
 
 # CALLBACK FOR THE FISH MAP
 @app.callback(
@@ -109,9 +116,9 @@ def update_figure(fish_value, param_value, depth_value, year_value):
         locations = fish_locations[(fish_locations['fish_type'] == fish_value) & (fish_locations['year']==year_value)].copy()
 
     color_value = param_data[(param_data.depth_range == depth_value)&(param_data.year == year_value)][param_value].item()
-    # print(color_value)
 
-    map_color = get_color(color_value, param_value)
+    map_color = get_color(color_value, param_value)[0]
+    map_colorscale = get_color(color_value, param_value)[1]
 
     return {
         'data': [
@@ -119,7 +126,30 @@ def update_figure(fish_value, param_value, depth_value, year_value):
                 lat=locations['latitude'].tolist(),
                 lon=locations['longitude'].tolist(),
                 radius=10,
-                showscale=False
+                showscale=False,
+                hoverinfo='skip'
+            ),
+            # Creating hidden heatmap so that colorscale for parameter average can show on the right side of the plot
+            go.Heatmap(
+                z=[list(param_data[param_value]),
+                   ],
+                colorscale=[[0.0, "rgb(96,118,142)"],
+                            [0.1, "rgb(106,129,150)"],
+                            [0.2, "rgb(115,140,159)"],
+                            [0.3, "rgb(125,151,167)"],
+                            [0.4, "rgb(134,162,175)"],
+                            [0.5, "rgb(144,173,184)"],
+                            [0.6, "rgb(153,183,192)"],
+                            [0.7, "rgb(163,194,200)"],
+                            [0.8, "rgb(172,205,208)"],
+                            [0.9, "rgb(182,216,217)"],
+                            [1.0, "rgb(191,227,225)"]],
+                colorbar=dict(
+                    title=f"{param_value}",
+                    titleside="top",
+                    tickmode="array",
+                    tickvals=map_colorscale,
+                )
             )
         ],
 
