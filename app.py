@@ -82,17 +82,22 @@ def serve_layout():
 app.layout = serve_layout
 
 def get_color(color_value, param_value):
+    '''Color formula:
+     formula = (color_value - min_color_value) / color_value_range * scale_range + min_scale
+    color_value_range = max_color_value - min_color_value
+    scale_range = max_scale - min_scale
+    '''
     if param_value not in ['temperature', 'salinity']:
         return 'rgb(255, 255, 255)', None
     elif param_value == 'temperature':
-        r = round((color_value - 2) / 10 * (191 + 10))
-        g = round((color_value - 2) / 10 * (227 + 10))
-        b = round((color_value - 2) / 10 * (225 + 10))
+        r = (color_value - 2) / (12-2) * (191 - 96) + 96
+        g = (color_value - 2) / (12-2) * (227 - 118) + 118
+        b = (color_value - 2) / (12-2) * (225 - 198) + 198
         tick_vals = [0, 4, 8, 11]
     elif param_value == 'salinity':
-        r = round((color_value - 30) / 6 * (191 + 10))
-        g = round((color_value - 30) / 6 * (227 + 10))
-        b = round((color_value - 30) / 6 * (225 + 10))
+        r = (color_value - 30) / (36-30) * (191 - 96) + 96
+        g = (color_value - 30) / (36-30) * (227 - 118) + 118
+        b = (color_value - 30) / (36-30) * (225 - 198) + 198
         tick_vals = [30, 32, 34, 36]
 
     # r should always be in the range 96-191
