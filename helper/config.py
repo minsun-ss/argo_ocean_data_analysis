@@ -1,10 +1,9 @@
-# store our keys here and the like
-# it's here and not in our OS environ so Claire and I can not suffer too much
+import os
 
-MAPBOX_TOKEN = 'pk.eyJ1IjoibWluc3VuIiwiYSI6ImNqdjRqNGF3ZjJyaDYzeXMwcWpzOTE5ODkifQ.9DOLjPum-SBZ7kSUP264eQ'
+MAPBOX_TOKEN = os.environ['MAPBOX']
 
 RDS_HOST = 'oceandb.cvgjf8n2qn4t.us-east-2.rds.amazonaws.com'
 RDS_USERNAME = 'argo'
-RDS_PASSWORD = 'SmRFQpsEZSU7unv'
+RDS_PASSWORD = 'BLAHBLAHBLAH' # ignore this, we changed it hahaha
 RDS_PORT = 5432
 RDS_DATABASE = 'oceandb'
